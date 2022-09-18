@@ -13,6 +13,7 @@ public class Menu {
         int choice = 0;
         Scanner input = new Scanner(System.in);
         boolean exit = false;
+        
 
         // Connect to DB
         try {
