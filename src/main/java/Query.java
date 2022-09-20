@@ -57,7 +57,8 @@ public class Query {
             // Display results
             displayResults(resultSet);
         } catch (Exception e) {
-            // TODO: handle exception
+            System.out.println("Issue making query");
+            e.printStackTrace();
         }
     }
 
@@ -72,23 +73,34 @@ public class Query {
 
             // Get column names
             for (int i = 1; i <= columns; i++) {
-                columnNames[i - 1] = rsmd.getColumnName(i);
+                columnNames[i - 1] = rsmd.getColumnLabel(i);
             }
 
             // Create header row
             StringBuilder headers = new StringBuilder();
             for (String column : columnNames) {
-                headers.append(column + "\t\t ");
+                headers.append(String.format("%-20s", column).toUpperCase());
             }
 
+            // Print header row
             System.out.println(headers);
+            for (int i = 0; i < columns * 20; i++) {
+                System.out.print("-");
+            }
+            System.out.println();
 
+            // Print results
+            Object obj = null;
             while (resultSet.next()) {
-                System.out.format("%-18s", resultSet.getInt("profit"));
-                System.out.format("%-18s", resultSet.getString("genre"));
-                System.out.format("%-18s", resultSet.getDate("release_date"));
-                System.out.format("%-18s", resultSet.getString("title"));
-                System.out.println(resultSet.getString("publisher"));
+                for (int i = 1; i <= columns; i++) {
+                    obj = resultSet.getObject(i);
+                    if (obj != null) {
+                        System.out.format("%-20s", resultSet.getObject(i).toString());
+                    } else {
+                        System.out.print("\t\t");
+                    }
+                }
+                System.out.println();
             }
 
         } catch (SQLException e) {
