@@ -8,7 +8,6 @@ import java.util.Scanner;
 
 public class Menu {
     public static void main(String[] args) {
-
         System.out.println("main");
         Connection connection = null;
 
@@ -46,6 +45,7 @@ public class Menu {
 
         try {
             do {
+                choice = 0;
                 System.out.println();
                 System.out.println("Welcome to Games DB");
                 System.out.println("Please select a valid option (1, 2, 3, 4, or 5).");
