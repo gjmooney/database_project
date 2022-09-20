@@ -9,30 +9,37 @@ import java.util.Scanner;
 public class Menu {
     public static void main(String[] args) {
 
+        System.out.println("main");
         Connection connection = null;
 
         // Connect to DB
         try {
             connection = connect(args[0], args[1], args[2], args[3]);
-            
+            displayMenu(connection);
+
         } catch (SQLException e) {
-            // TODO: handle exception
-        } catch (ClassNotFoundException e) {
+            System.out.println("Problem connecting to DB");
             e.printStackTrace();
-        }  catch (Exception e) {
+        } catch (ClassNotFoundException e) {
+            System.out.println("Can't find classes");
+            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println("Super broke");
             e.printStackTrace();
         } finally {
             try {
                 if (connection != null) {
+                    System.out.println("closing connection to DB");
                     connection.close();
                 }
             } catch (Exception e) {
-                // TODO: handle exception
+                e.printStackTrace();
             }
-        }        
+        }
     }
 
-    public static void displayMenu() {
+    public static void displayMenu(Connection connection) {
+        System.out.println("display");
         int choice = 0;
         Scanner input = new Scanner(System.in);
         boolean exit = false;
@@ -48,27 +55,27 @@ public class Menu {
                 System.out.println("4. Delete a DB entry");
                 System.out.println("5. Quit");
                 System.out.println();
-    
+
                 choice = input.nextInt();
                 switch (choice) {
                     case 1:
-                        
+                        Query.queryMenu(input, connection);
                         break;
                     case 2:
-                        
+
                         break;
                     case 3:
-                        
+
                         break;
                     case 4:
-                        
+
                         break;
                     case 5:
                         System.out.println("BUH BYE!");
                         input.close();
                         exit = true;
                         break;
-                
+
                     default:
                         break;
                 }
@@ -79,15 +86,16 @@ public class Menu {
         }
     }
 
-    public static Connection connect(String url, String user, String password, String driver) throws SQLException, ClassNotFoundException{
+    public static Connection connect(String url, String user, String password, String driver)
+            throws SQLException, ClassNotFoundException {
         Connection connection = null;
 
         // Load the JDBC driver
         Class.forName(driver);
-        
+
         // Establish connection to DB
         connection = DriverManager.getConnection(url, user, password);
 
         return connection;
-}
+    }
 }
