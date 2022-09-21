@@ -94,10 +94,19 @@ public class Query {
         } catch (Exception e) {
             System.out.println("Issue making query");
             e.printStackTrace();
+        } finally {
+            try {
+                resultSet.close();
+                statement.close();
+            } catch (SQLException e) {
+                System.out.println("Issue closing resources");
+                e.printStackTrace();
+            }
+
         }
     }
 
-    private static void displayResults(ResultSet resultSet) {
+    static void displayResults(ResultSet resultSet) {
         System.out.println("display");
         try {
 
