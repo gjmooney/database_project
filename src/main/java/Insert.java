@@ -74,7 +74,7 @@ public class Insert {
 
             try {
                 System.out.println("What's this persons name?");
-                name = input.nextLine();
+                name = input.next();
                 System.out.println("Please enter their employee id");
                 employeeId = input.nextInt();
                 System.out.println("What's this persons role?");
@@ -88,7 +88,7 @@ public class Insert {
                     System.out.println("Please enter their salary:");
                     salary = input.nextDouble();
                     System.out.println("Please enter their start date (YYYY-MM-DD)");
-                    startDate = input.nextLine();
+                    startDate = input.next();
                 }
 
                 System.out.println("Enter 1 if they have worked on a game in our DB");
@@ -115,53 +115,71 @@ public class Insert {
 
         } while (!exit);
 
-        // Insert into person
-        insertIntoPerson(
-                connection,
-                "person",
-                name,
-                String.valueOf(employeeId),
-                null,
-                null,
-                null,
-                null);
+        try {
+            connection.setAutoCommit(false);
 
-        if (role == 1) {
-            // Insert into CEO
+            // Insert into person
             insertIntoPerson(
                     connection,
-                    "ceo",
-                    null,
+                    "person",
+                    name,
                     String.valueOf(employeeId),
                     null,
                     null,
                     null,
                     null);
-        } else if (role == 2) {
-            // Insert into designer
-            insertIntoPerson(
-                    connection,
-                    "designer",
-                    null,
-                    String.valueOf(employeeId),
-                    String.valueOf(salary),
-                    startDate,
-                    null,
-                    null);
-        }
 
-        // Insert into works_on
-        insertIntoWorksOn(connection, employeeId, games);
+            if (role == 1) {
+                // Insert into CEO
+                insertIntoPerson(
+                        connection,
+                        "ceo",
+                        null,
+                        String.valueOf(employeeId),
+                        null,
+                        null,
+                        null,
+                        null);
+            } else if (role == 2) {
+                // Insert into designer
+                insertIntoPerson(
+                        connection,
+                        "designer",
+                        null,
+                        String.valueOf(employeeId),
+                        String.valueOf(salary),
+                        startDate,
+                        null,
+                        null);
+            }
 
-        // Insert into works_for
-        if (publisher != 0) {
-            insertIntoPerson(connection,
-                    "works_for",
-                    null,
-                    String.valueOf(employeeId),
-                    null, startDate,
-                    String.valueOf(publisher),
-                    null);
+            // Commit employee table inserts
+            connection.commit();
+
+            // Insert into works_on
+            insertIntoWorksOn(connection, employeeId, games);
+
+            // Insert into works_for
+            if (publisher != 0) {
+                insertIntoPerson(connection,
+                        "works_for",
+                        null,
+                        String.valueOf(employeeId),
+                        null, startDate,
+                        String.valueOf(publisher),
+                        null);
+            }
+
+            connection.commit();
+        } catch (SQLException e) {
+            System.out.println("Problem inserting");
+            try {
+                connection.rollback();
+            } catch (SQLException e1) {
+                System.out.println("Issue with insert. Rolling back changes");
+                e1.printStackTrace();
+            }
+            e.printStackTrace();
         }
 
         /*
@@ -243,7 +261,7 @@ public class Insert {
                 }
             } while (!exit);
         } catch (Exception e) {
-            System.out.println("Issue making query");
+            System.out.println("Issue making display publishers query");
             e.printStackTrace();
         }
 
@@ -260,32 +278,33 @@ public class Insert {
             String companyId,
             LinkedList<Integer> games) {
         Statement statement = null;
-        ResultSet resultSet = null;
 
         String query = "INSERT INTO ${table} (${columns}) VALUES (${values}) ";
-        query.replace("${table}", tableName);
+        query = query.replace("${table}", tableName);
         String values;
 
         // Replace query params based on table name
         switch (tableName) {
             case "person":
-                query.replace("${columns}", "employee_id, name");
-                values = name + ", " + employeeId;
-                query.replace("${values}", values);
+                query = query.replace("${columns}", "employee_id, name");
+                values = employeeId + ", '" + name + "' ";
+                query = query.replace("${values}", values);
+                System.out.println("QUERY: " + query);
+
                 break;
             case "ceo":
-                query.replace("${columns}", "employee_id");
-                query.replace("${values}", employeeId);
+                query = query.replace("${columns}", "employee_id");
+                query = query.replace("${values}", employeeId);
                 break;
             case "designer":
-                query.replace("${columns}", "employee_id, salary, start_date");
-                values = employeeId + ", " + salary + ", " + startDate;
-                query.replace("${values}", values);
+                query = query.replace("${columns}", "employee_id, salary, start_date");
+                values = employeeId + ", " + salary + ", '" + startDate + "'";
+                query = query.replace("${values}", values);
                 break;
             case "works_for":
-                query.replace("${columns}", "employee_id, company_id");
+                query = query.replace("${columns}", "employee_id, company_id");
                 values = employeeId + ", " + companyId;
-                query.replace("${values}", values);
+                query = query.replace("${values}", values);
                 break;
 
             default:
@@ -296,17 +315,18 @@ public class Insert {
             // Create statement
             statement = connection.createStatement();
 
-            // Make query
-            resultSet = statement.executeQuery(query);
+            // Make an update
+            if (statement.executeUpdate(query) > 0) {
+                System.out.println("SUCCESS");
+            } else {
+                System.out.println("NO GOOD");
+            }
 
-            // Display results
-            Query.displayResults(resultSet);
         } catch (Exception e) {
-            System.out.println("Issue making query");
+            System.out.println("Issue making person update");
             e.printStackTrace();
         } finally {
             try {
-                resultSet.close();
                 statement.close();
             } catch (SQLException e) {
                 System.out.println("Issue closing resources");
@@ -334,7 +354,7 @@ public class Insert {
                 statement.clearParameters();
             }
         } catch (Exception e) {
-            System.out.println("Issue making update");
+            System.out.println("Issue making works on insert");
             e.printStackTrace();
         } finally {
             try {

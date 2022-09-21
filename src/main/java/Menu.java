@@ -62,7 +62,7 @@ public class Menu {
                         Query.queryMenu(input, connection);
                         break;
                     case 2:
-
+                        Insert.insertMenu(input, connection);
                         break;
                     case 3:
 
