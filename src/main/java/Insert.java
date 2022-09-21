@@ -157,7 +157,9 @@ public class Insert {
             connection.commit();
 
             // Insert into works_on
-            insertIntoWorksOn(connection, employeeId, games);
+            if (games.size() != 0) {
+                insertIntoWorksOn(connection, employeeId, games);
+            }
 
             // Insert into works_for
             if (publisher != 0) {
@@ -171,6 +173,7 @@ public class Insert {
             }
 
             connection.commit();
+            games.clear();
         } catch (SQLException e) {
             System.out.println("Problem inserting");
             try {
@@ -192,11 +195,12 @@ public class Insert {
     private static LinkedList<Integer> displayGames(Connection connection, Scanner input, LinkedList<Integer> games) {
         Statement statement = null;
         ResultSet resultSet = null;
+        int next = -1;
         boolean exit = false;
 
         try {
             // Create statement
-            statement = connection.createStatement();
+            statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
             // Make query
             resultSet = statement.executeQuery("SELECT game_id, title " +
@@ -204,14 +208,19 @@ public class Insert {
 
             do {
                 System.out.println("Enter game IDs of games worked on");
+                System.out.println("Enter 0 when all games selected");
+
                 // Display results
                 Query.displayResults(resultSet);
                 try {
-                    games.add(input.nextInt());
-                    System.out.println("Enter 0 when all games selected");
-                    if (input.nextInt() == 0) {
+                    next = input.nextInt();
+
+                    if (next == 0) {
                         exit = true;
+                    } else {
+                        games.add(next);
                     }
+                    resultSet.beforeFirst();
                 } catch (NumberFormatException e) {
                     System.out.println("Please enter a valid choice.");
                     input = new Scanner(System.in);
@@ -297,7 +306,7 @@ public class Insert {
                 query = query.replace("${values}", employeeId);
                 break;
             case "designer":
-                query = query.replace("${columns}", "employee_id, salary, start_date");
+                query = query.replace("${columns}", "employee_id, salary, employment_date");
                 values = employeeId + ", " + salary + ", '" + startDate + "'";
                 query = query.replace("${values}", values);
                 break;
@@ -317,13 +326,22 @@ public class Insert {
 
             // Make an update
             if (statement.executeUpdate(query) > 0) {
-                System.out.println("SUCCESS");
+                System.out.println("Insert into " + tableName + ": SUCCESS");
             } else {
-                System.out.println("NO GOOD");
+                System.out.println("Insert into " + tableName + ": NO GOOD");
             }
 
         } catch (Exception e) {
             System.out.println("Issue making person update");
+            String message = e.getMessage();
+            if (message.contains("Duplicate entry")) {
+                System.out.println("\nSorry, that actor is already in that movie.");
+            } else if (message.contains("foreign key constraint")) {
+                System.out.println("\nSorry that film or actor does not exist in the database");
+            } else {
+                e.printStackTrace();
+            }
+            System.out.println(e.getMessage());
             e.printStackTrace();
         } finally {
             try {
@@ -347,9 +365,9 @@ public class Insert {
                 statement.setInt(1, employeeId);
                 statement.setInt(2, gameId);
                 if (statement.executeUpdate() > 0) {
-                    System.out.println("SUCCESS");
+                    System.out.println("Insert into works_on: SUCCESS");
                 } else {
-                    System.out.println("NO GOOD");
+                    System.out.println("Insert into works_on: NO GOOD");
                 }
                 statement.clearParameters();
             }
