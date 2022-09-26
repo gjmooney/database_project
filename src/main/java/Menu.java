@@ -68,7 +68,7 @@ public class Menu {
 
                         break;
                     case 4:
-
+                        Delete.deleteMenu(input, connection);
                         break;
                     case 5:
                         System.out.println("BUH BYE!");
