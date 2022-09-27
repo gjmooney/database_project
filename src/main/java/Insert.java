@@ -16,7 +16,7 @@ public class Insert {
         boolean exit = false;
         do {
             System.out.println();
-            System.out.println("Let's make an insert!");
+            System.out.println("\nLet's make an insert!");
             System.out.println("Which table would you like to add to?");
             System.out.println("-------------------------------------");
             System.out.println("1. Person");

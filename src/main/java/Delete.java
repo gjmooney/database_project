@@ -13,7 +13,7 @@ public class Delete {
         boolean exit = false;
         do {
             System.out.println();
-            System.out.println("Let's delete an entry!");
+            System.out.println("\nLet's delete an entry!");
             System.out.println("Which table would you like to delete from?");
             System.out.println("-------------------------------------");
             System.out.println("1. Person");

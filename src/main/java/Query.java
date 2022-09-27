@@ -39,7 +39,7 @@ public class Query {
         boolean exitQuery = false;
         do {
             System.out.println();
-            System.out.println("Let's make a query!");
+            System.out.println("\nLet's make a query!");
             System.out.println("-------------------");
             System.out.println("1. See all games and their publishers");
             System.out.println("2. Get the CEO of Square Enix");
