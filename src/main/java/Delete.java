@@ -59,6 +59,8 @@ public class Delete {
         System.out.println("Who would you like to delete?");
         person = displayPersons(connection, input);
 
+        checkTable(connection, "works_for", String.valueOf(person));
+        checkTable(connection, "works_on", String.valueOf(person));
         checkTable(connection, "ceo", String.valueOf(person));
         checkTable(connection, "designer", String.valueOf(person));
         removeFromTable(connection, "person", String.valueOf(person));
@@ -105,8 +107,7 @@ public class Delete {
             statement = connection.createStatement();
 
             if (statement.executeUpdate(query) > 0) {
-                // remove from table
-                System.out.println(empId + " was removed from " + tableName);
+                System.out.println("Employee with ID " + empId + " was removed from " + tableName);
             } else {
                 System.out.println(empId + " was not removed from " + tableName);
             }
