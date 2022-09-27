@@ -174,11 +174,11 @@ public class Insert {
             connection.commit();
             games.clear();
         } catch (SQLException e) {
-            System.out.println("Problem inserting");
+            System.out.println("Issue with insert. Rolling back changes");
             try {
                 connection.rollback();
             } catch (SQLException e1) {
-                System.out.println("Issue with insert. Rolling back changes");
+                System.out.println("Issue with rollback");
                 e1.printStackTrace();
             }
             e.printStackTrace();

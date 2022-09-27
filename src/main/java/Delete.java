@@ -72,6 +72,12 @@ public class Delete {
             connection.commit();
         } catch (SQLException e) {
             System.out.println("Issue deleting entry");
+            try {
+                connection.rollback();
+            } catch (SQLException e1) {
+                System.out.println("Issue rolling back changes");
+                e1.printStackTrace();
+            }
             e.printStackTrace();
         }
 

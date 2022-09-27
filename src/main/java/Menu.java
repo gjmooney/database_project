@@ -65,7 +65,7 @@ public class Menu {
                         Insert.insertMenu(input, connection);
                         break;
                     case 3:
-
+                        Update.updateMenu(input, connection);
                         break;
                     case 4:
                         Delete.deleteMenu(input, connection);
