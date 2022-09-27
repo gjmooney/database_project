@@ -96,6 +96,9 @@ public class Menu {
         // Establish connection to DB
         connection = DriverManager.getConnection(url, user, password);
 
+        // Turn off auto commit
+        connection.setAutoCommit(false);
+
         return connection;
     }
 }

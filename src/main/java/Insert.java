@@ -116,7 +116,6 @@ public class Insert {
         } while (!exit);
 
         try {
-            connection.setAutoCommit(false);
 
             // Insert into person
             insertIntoPerson(

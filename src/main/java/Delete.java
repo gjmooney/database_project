@@ -57,13 +57,23 @@ public class Delete {
 
         // Get employee_id to delete
         System.out.println("Who would you like to delete?");
+        System.out.println("Enter 0 if you don't want to remove anyone");
         person = displayPersons(connection, input);
 
-        checkTable(connection, "works_for", String.valueOf(person));
-        checkTable(connection, "works_on", String.valueOf(person));
-        checkTable(connection, "ceo", String.valueOf(person));
-        checkTable(connection, "designer", String.valueOf(person));
-        removeFromTable(connection, "person", String.valueOf(person));
+        if (person != 0) {
+            checkTable(connection, "works_for", String.valueOf(person));
+            checkTable(connection, "works_on", String.valueOf(person));
+            checkTable(connection, "ceo", String.valueOf(person));
+            checkTable(connection, "designer", String.valueOf(person));
+            removeFromTable(connection, "person", String.valueOf(person));
+        }
+
+        try {
+            connection.commit();
+        } catch (SQLException e) {
+            System.out.println("Issue deleting entry");
+            e.printStackTrace();
+        }
 
     }
 
