@@ -155,7 +155,7 @@ public class Delete {
 
             do {
                 // Display results
-                Query.displayResults(resultSet);
+                Menu.displayResults(resultSet);
                 try {
                     person = input.nextInt();
                     if (person != 0) {

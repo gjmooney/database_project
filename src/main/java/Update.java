@@ -68,7 +68,7 @@ public class Update {
             // Display person table
             statement = connection.createStatement();
             resultSet = statement.executeQuery("SELECT * FROM person");
-            Query.displayResults(resultSet);
+            Menu.displayResults(resultSet);
 
             // Prompt for who to update
             System.out.println("Which person would you like to update?");

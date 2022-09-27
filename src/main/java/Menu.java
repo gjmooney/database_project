@@ -2,6 +2,8 @@ package main.java;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
@@ -37,7 +39,7 @@ public class Menu {
         }
     }
 
-    public static void displayMenu(Connection connection) {
+    private static void displayMenu(Connection connection) {
         System.out.println("display");
         int choice = 0;
         Scanner input = new Scanner(System.in);
@@ -86,7 +88,7 @@ public class Menu {
         }
     }
 
-    public static Connection connect(String url, String user, String password, String driver)
+    private static Connection connect(String url, String user, String password, String driver)
             throws SQLException, ClassNotFoundException {
         Connection connection = null;
 
@@ -100,5 +102,53 @@ public class Menu {
         connection.setAutoCommit(false);
 
         return connection;
+    }
+
+    public static void displayResults(ResultSet resultSet) {
+        System.out.println("display");
+        try {
+
+            // Get number of columns
+            ResultSetMetaData rsmd = resultSet.getMetaData();
+            int columns = rsmd.getColumnCount();
+            String[] columnNames = new String[columns];
+
+            // Get column names
+            for (int i = 1; i <= columns; i++) {
+                columnNames[i - 1] = rsmd.getColumnLabel(i);
+            }
+
+            // Create header row
+            StringBuilder headers = new StringBuilder();
+            for (String column : columnNames) {
+                headers.append(String.format("%-20s", column).toUpperCase());
+            }
+
+            // Print header row
+            System.out.println(headers);
+            for (int i = 0; i < columns * 20; i++) {
+                System.out.print("-");
+            }
+            System.out.println();
+
+            // Print results
+            Object obj = null;
+            while (resultSet.next()) {
+                for (int i = 1; i <= columns; i++) {
+                    obj = resultSet.getObject(i);
+                    if (obj != null) {
+                        System.out.format("%-20s", resultSet.getObject(i).toString());
+                    } else {
+                        System.out.print("\t\t");
+                    }
+                }
+                System.out.println();
+            }
+
+        } catch (SQLException e) {
+
+            e.printStackTrace();
+        }
+
     }
 }

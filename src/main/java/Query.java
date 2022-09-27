@@ -2,7 +2,6 @@ package main.java;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.InputMismatchException;
@@ -90,7 +89,7 @@ public class Query {
                     .executeQuery(query);
 
             // Display results
-            displayResults(resultSet);
+            Menu.displayResults(resultSet);
         } catch (Exception e) {
             System.out.println("Issue making query");
             e.printStackTrace();
@@ -104,54 +103,6 @@ public class Query {
             }
 
         }
-    }
-
-    static void displayResults(ResultSet resultSet) {
-        System.out.println("display");
-        try {
-
-            // Get number of columns
-            ResultSetMetaData rsmd = resultSet.getMetaData();
-            int columns = rsmd.getColumnCount();
-            String[] columnNames = new String[columns];
-
-            // Get column names
-            for (int i = 1; i <= columns; i++) {
-                columnNames[i - 1] = rsmd.getColumnLabel(i);
-            }
-
-            // Create header row
-            StringBuilder headers = new StringBuilder();
-            for (String column : columnNames) {
-                headers.append(String.format("%-20s", column).toUpperCase());
-            }
-
-            // Print header row
-            System.out.println(headers);
-            for (int i = 0; i < columns * 20; i++) {
-                System.out.print("-");
-            }
-            System.out.println();
-
-            // Print results
-            Object obj = null;
-            while (resultSet.next()) {
-                for (int i = 1; i <= columns; i++) {
-                    obj = resultSet.getObject(i);
-                    if (obj != null) {
-                        System.out.format("%-20s", resultSet.getObject(i).toString());
-                    } else {
-                        System.out.print("\t\t");
-                    }
-                }
-                System.out.println();
-            }
-
-        } catch (SQLException e) {
-
-            e.printStackTrace();
-        }
-
     }
 
 }

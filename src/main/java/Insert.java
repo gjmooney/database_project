@@ -210,7 +210,7 @@ public class Insert {
                 System.out.println("Enter 0 when all games selected");
 
                 // Display results
-                Query.displayResults(resultSet);
+                Menu.displayResults(resultSet);
                 try {
                     next = input.nextInt();
 
@@ -257,7 +257,7 @@ public class Insert {
 
             do {
                 // Display results
-                Query.displayResults(resultSet);
+                Menu.displayResults(resultSet);
                 try {
                     publisher = input.nextInt();
                     if (publisher != 0) {
