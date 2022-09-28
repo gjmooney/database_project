@@ -29,10 +29,10 @@ public class Delete {
                         deletePerson(connection, input);
                         break;
                     case 2:
-
+                        deleteGame(connection, input);
                         break;
                     case 3:
-
+                        deletePublisher(connection, input);
                         break;
                     case 4:
                         exit = true;
@@ -41,53 +41,165 @@ public class Delete {
                         break;
                 }
 
+                connection.commit();
+
             } catch (InputMismatchException e) {
                 input = new Scanner(System.in);
                 System.out.println("Please enter a valid selection");
+            } catch (SQLException e) {
+                System.out.println("Issue deleting entry");
+                try {
+                    connection.rollback();
+                } catch (SQLException e1) {
+                    System.out.println("Issue rolling back changes");
+                    e1.printStackTrace();
+                }
+                e.printStackTrace();
             }
         } while (!exit);
     }
 
-    private static void deletePerson(Connection connection, Scanner input) {
+    private static void deletePerson(Connection connection, Scanner input) throws SQLException {
         // display all persons
         // ask which to delete
         // remove them from ceo/designer
         // then delete them from person
         int person = 0;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        boolean exit = false;
 
         // Get employee_id to delete
         System.out.println("Who would you like to delete?");
         System.out.println("Enter 0 if you don't want to remove anyone");
-        person = displayPersons(connection, input);
+
+        // Create statement
+        statement = connection.createStatement();
+
+        // Make query
+        resultSet = statement.executeQuery("SELECT employee_id, name " +
+                "FROM person ");
+
+        do {
+            // Display results
+            Menu.displayResults(resultSet);
+            try {
+                person = input.nextInt();
+                if (person != 0) {
+                    exit = true;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid choice.");
+                input = new Scanner(System.in);
+            }
+        } while (!exit);
 
         if (person != 0) {
-            checkTable(connection, "works_for", String.valueOf(person));
-            checkTable(connection, "works_on", String.valueOf(person));
-            checkTable(connection, "ceo", String.valueOf(person));
-            checkTable(connection, "designer", String.valueOf(person));
-            removeFromTable(connection, "person", String.valueOf(person));
+            checkTable(connection, "works_for", String.valueOf(person), 1);
+            checkTable(connection, "works_on", String.valueOf(person), 1);
+            checkTable(connection, "ceo", String.valueOf(person), 1);
+            checkTable(connection, "designer", String.valueOf(person), 1);
+            removeFromTable(connection, "person", String.valueOf(person), 1);
         }
-
-        try {
-            connection.commit();
-        } catch (SQLException e) {
-            System.out.println("Issue deleting entry");
-            try {
-                connection.rollback();
-            } catch (SQLException e1) {
-                System.out.println("Issue rolling back changes");
-                e1.printStackTrace();
-            }
-            e.printStackTrace();
-        }
-
     }
 
-    private static void checkTable(Connection connection, String tableName, String empId) {
+    private static void deleteGame(Connection connection, Scanner input) throws SQLException {
 
-        String query = "SELECT employee_id FROM ${table} WHERE employee_id=${id}";
+        int game = 0;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        boolean exit = false;
+
+        // Get game_id to delete
+        System.out.println("Which game would you like to delete?");
+        System.out.println("Enter 0 if you don't want to remove any");
+
+        // Create statement
+        statement = connection.createStatement();
+
+        // Make query
+        resultSet = statement.executeQuery("SELECT game_id, title " +
+                "FROM game ");
+
+        do {
+            // Display results
+            Menu.displayResults(resultSet);
+            try {
+                game = input.nextInt();
+                if (game != 0) {
+                    exit = true;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid choice.");
+                input = new Scanner(System.in);
+            }
+        } while (!exit);
+
+        if (game != 0) {
+            checkTable(connection, "works_on", String.valueOf(game), 2);
+            checkTable(connection, "rating", String.valueOf(game), 2);
+            checkTable(connection, "publish", String.valueOf(game), 2);
+            removeFromTable(connection, "game", String.valueOf(game), 2);
+        }
+    }
+
+    private static void deletePublisher(Connection connection, Scanner input) throws SQLException {
+        // display all persons
+        // ask which to delete
+        // remove them from ceo/designer
+        // then delete them from person
+        int publisher = 0;
+        Statement statement = null;
+        ResultSet resultSet = null;
+        boolean exit = false;
+
+        // Get employee_id to delete
+        System.out.println("Which would you like to delete?");
+        System.out.println("Enter 0 if you don't want to remove one");
+
+        // Create statement
+        statement = connection.createStatement();
+
+        // Make query
+        resultSet = statement.executeQuery("SELECT company_id, name " +
+                "FROM publisher ");
+
+        do {
+            // Display results
+            Menu.displayResults(resultSet);
+            try {
+                publisher = input.nextInt();
+                if (publisher != 0) {
+                    exit = true;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid choice.");
+                input = new Scanner(System.in);
+            }
+        } while (!exit);
+
+        if (publisher != 0) {
+            checkTable(connection, "works_for", String.valueOf(publisher), 3);
+            checkTable(connection, "publish", String.valueOf(publisher), 3);
+            removeFromTable(connection, "publisher", String.valueOf(publisher), 3);
+        }
+    }
+
+    /*
+     * Identifier - 1 = person, 2 = game, 3 = publisher
+     */
+    private static void checkTable(Connection connection, String tableName, String keyId, int identifier) {
+
+        String query = "SELECT ${key} FROM ${table} WHERE ${key}=${id}";
+        if (identifier == 1) {
+            query = query.replace("${key}", "employee_id");
+        } else if (identifier == 2) {
+            query = query.replace("${key}", "game_id");
+        } else if (identifier == 3) {
+            query = query.replace("${key}", "company_id");
+        }
         query = query.replace("${table}", tableName);
-        query = query.replace("${id}", empId);
+        query = query.replace("${id}", keyId);
         Statement statement = null;
         ResultSet resultSet = null;
 
@@ -97,7 +209,7 @@ public class Delete {
 
             if (resultSet.next()) {
                 // remove from table
-                removeFromTable(connection, tableName, empId);
+                removeFromTable(connection, tableName, keyId, identifier);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -113,19 +225,26 @@ public class Delete {
 
     }
 
-    private static void removeFromTable(Connection connection, String tableName, String empId) {
-        String query = "DELETE FROM ${table} WHERE employee_id=${id}";
+    private static void removeFromTable(Connection connection, String tableName, String keyId, int identifier) {
+        String query = "DELETE FROM ${table} WHERE ${key}=${id}";
+        if (identifier == 1) {
+            query = query.replace("${key}", "employee_id");
+        } else if (identifier == 2) {
+            query = query.replace("${key}", "game_id");
+        } else if (identifier == 3) {
+            query = query.replace("${key}", "company_id");
+        }
         query = query.replace("${table}", tableName);
-        query = query.replace("${id}", empId);
+        query = query.replace("${id}", keyId);
         Statement statement = null;
 
         try {
             statement = connection.createStatement();
 
             if (statement.executeUpdate(query) > 0) {
-                System.out.println("Employee with ID " + empId + " was removed from " + tableName);
+                System.out.println("Employee with ID " + keyId + " was removed from " + tableName);
             } else {
-                System.out.println(empId + " was not removed from " + tableName);
+                System.out.println(keyId + " was not removed from " + tableName);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -137,41 +256,6 @@ public class Delete {
                 e.printStackTrace();
             }
         }
-    }
-
-    private static int displayPersons(Connection connection, Scanner input) {
-        Statement statement = null;
-        ResultSet resultSet = null;
-        boolean exit = false;
-        int person = 0;
-
-        try {
-            // Create statement
-            statement = connection.createStatement();
-
-            // Make query
-            resultSet = statement.executeQuery("SELECT employee_id, name " +
-                    "FROM person ");
-
-            do {
-                // Display results
-                Menu.displayResults(resultSet);
-                try {
-                    person = input.nextInt();
-                    if (person != 0) {
-                        exit = true;
-                    }
-                } catch (NumberFormatException e) {
-                    System.out.println("Please enter a valid choice.");
-                    input = new Scanner(System.in);
-                }
-            } while (!exit);
-        } catch (Exception e) {
-            System.out.println("Issue making display person query");
-            e.printStackTrace();
-        }
-
-        return person;
     }
 
 }
