@@ -242,7 +242,7 @@ public class Delete {
             statement = connection.createStatement();
 
             if (statement.executeUpdate(query) > 0) {
-                System.out.println("Employee with ID " + keyId + " was removed from " + tableName);
+                System.out.println("ID " + keyId + " was removed from " + tableName);
             } else {
                 System.out.println(keyId + " was not removed from " + tableName);
             }
