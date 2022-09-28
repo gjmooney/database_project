@@ -45,7 +45,10 @@ public class Query {
             System.out.println("2. Get the CEO of Square Enix");
             System.out.println("3. Get the name and salary of everyone that worked on Final Fantasy VII");
             System.out.println("4. Get the publisher of Death Stranding");
-            System.out.println("5. Return to main menu");
+            System.out.println("5. List all persons");
+            System.out.println("6. List all games");
+            System.out.println("7. List all publishers");
+            System.out.println("8. Return to main menu");
 
             try {
                 choice = input.nextInt();
@@ -64,6 +67,15 @@ public class Query {
                         doQuery(connection, fourthQuery);
                         break;
                     case 5:
+                        doQuery(connection, "SELECT * FROM person");
+                        break;
+                    case 6:
+                        doQuery(connection, "SELECT * FROM game");
+                        break;
+                    case 7:
+                        doQuery(connection, "SELECT * FROM publisher");
+                        break;
+                    case 8:
                         exitQuery = true;
                         break;
                     default:
