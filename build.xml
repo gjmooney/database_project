@@ -1,0 +1,38 @@
+<project name="Database Project" default="compile" basedir=".">
+  <property file="build.properties"/>
+
+  <!-- init target makes the directory structure. You may not
+       require this if you set your environment up by hand. -->
+  <target name="init">
+    <tstamp/>
+    <mkdir dir="${classes.dir}"/>
+  </target>
+
+  <!-- Compiles your java files and puts the classes in classes.dir -->
+  <target name="compile" depends="init">
+    <javac debug="true"
+      srcdir="${src.dir}"
+      destdir="${classes.dir}">
+      <!-- Make sure you set your classpath! -->
+      <classpath>
+        <fileset dir="${lib.dir}" includes="*.jar"/>
+        <pathelement path="${classes.dir}" />
+      </classpath>
+    </javac>
+  </target>
+    
+  <!-- This example dist target merely jars up the webapp files. -->
+  <target name="dist" depends="compile">
+    <jar destfile="../${dist.jar}" basedir=".">
+    </jar>
+  </target>
+
+  <!-- Clean -->
+  <target name="clean">
+    <delete file="../${dist.jar}"/>
+    <delete dir="${classes.dir}"/>
+  </target>
+
+</project>
+  
+
