@@ -218,7 +218,7 @@ public class Update {
 
     }
 
-    private static boolean parseDate(String date) {
+    static boolean parseDate(String date) {
         return date.matches("^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$");
 
     }

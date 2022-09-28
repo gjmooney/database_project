@@ -1,6 +1,7 @@
 package main.java;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -91,11 +92,11 @@ public class Insert {
                     startDate = input.next();
                 }
 
-                System.out.println("Enter 1 if they have worked on a game in our DB");
+                System.out.println("Enter 1 if they have worked on any games in our DB");
                 nextPrompt = input.nextInt();
                 if (nextPrompt == 1) {
                     System.out.println("-----------------------------");
-                    displayGames(connection, input, games);
+                    getSeveralRows(connection, input, games, 2);
                     nextPrompt = 0;
                 }
 
@@ -183,6 +184,142 @@ public class Insert {
             }
             e.printStackTrace();
         }
+    }
+
+    private static void gameInsertMenu(Connection connection, Scanner input) {
+        // get the games title
+        // get profit
+        // get genre
+        // get release date
+        // get publisher
+        // get employees - ceo can't work on?
+        // get rating?
+        // must have designer (any number) and publisher (only one)
+        String title = null;
+        int keyId = 0;
+        double profit = 0.0;
+        String genre;
+        String releaseDateString = null;
+        Date releaseDate;
+        int publisher = 0;
+        int nextPrompt = 0;
+        LinkedList<Integer> employees = new LinkedList<>();
+        boolean exit = false;
+
+        do {
+
+            try {
+                // Basic game info
+                System.out.println("What's this games title?");
+                title = input.next();
+                System.out.format("Please enter %s's profit:", title);
+                profit = input.nextDouble();
+                System.out.format("Please enter %s's genre:", title);
+                genre = input.next();
+                System.out.format("Please enter %s's release date (YYYY-MM-DD)", title);
+                releaseDateString = input.next();
+                if (Update.parseDate(releaseDateString)) {
+                    releaseDate = Date.valueOf(releaseDateString);
+                }
+
+                // Get the publisher
+                System.out.println("Please select the publisher");
+                System.out.println("-----------------------------");
+                publisher = displayPublishers(connection, input);
+
+                // Get people that worked on it
+                System.out.format("Please select the people that worked on %s", title);
+                System.out.println("-----------------------------");
+                employees = getSeveralRows(connection, input, employees, 1);
+                exit = true;
+
+                // Insert into game table
+                insertIntoGame(connection, title, profit, genre, releaseDate);
+
+                // Quick query to get the game ID
+                keyId = getId(connection, title, 2, "game");
+
+                // Insert into publish table
+
+                // Insert into works_on table
+
+                employees.clear();
+
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+                input = new Scanner(System.in);
+            }
+
+        } while (!exit);
+
+        try {
+
+            // Insert into person
+            insertIntoPerson(
+                    connection,
+                    "person",
+                    name,
+                    String.valueOf(keyId),
+                    null,
+                    null,
+                    null,
+                    null);
+
+            if (role == 1) {
+                // Insert into CEO
+                insertIntoPerson(
+                        connection,
+                        "ceo",
+                        null,
+                        String.valueOf(keyId),
+                        null,
+                        null,
+                        null,
+                        null);
+            } else if (role == 2) {
+                // Insert into designer
+                insertIntoPerson(
+                        connection,
+                        "designer",
+                        null,
+                        String.valueOf(keyId),
+                        String.valueOf(salary),
+                        startDate,
+                        null,
+                        null);
+            }
+
+            // Commit employee table inserts
+            connection.commit();
+
+            // Insert into works_on
+            if (games.size() != 0) {
+                insertIntoWorksOn(connection, keyId, games);
+            }
+
+            // Insert into works_for
+            if (publisher != 0) {
+                insertIntoPerson(connection,
+                        "works_for",
+                        null,
+                        String.valueOf(keyId),
+                        null, startDate,
+                        String.valueOf(publisher),
+                        null);
+            }
+
+            connection.commit();
+            games.clear();
+        } catch (SQLException e) {
+            System.out.println("Issue with insert. Rolling back changes");
+            try {
+                connection.rollback();
+            } catch (SQLException e1) {
+                System.out.println("Issue with rollback");
+                e1.printStackTrace();
+            }
+            e.printStackTrace();
+        }
 
         /*
          * insertIntoPerson(connection, "person", name, String.valueOf(employeeId),
@@ -191,23 +328,65 @@ public class Insert {
          */
     }
 
-    private static LinkedList<Integer> displayGames(Connection connection, Scanner input, LinkedList<Integer> games) {
+    private static int getId(Connection connection, String name, int type, String tableName) throws SQLException {
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        String query = "SELECT ${id} FROM ${table} WHERE ${name}=?";
+        int id = 0;
+        query = query.replace("${table}", tableName);
+
+        statement = connection.prepareStatement(query);
+        if (type == 1) {
+            query = query.replace("${id}", "employee_id");
+            query = query.replace("${name}", "name");
+        } else if (type == 2) {
+            query = query.replace("${id}", "game_id");
+            query = query.replace("${name}", "title");
+        } else {
+            query = query.replace("${id}", "company_id");
+            query = query.replace("${name}", "name");
+        }
+        statement.setString(1, name);
+
+        resultSet = statement.executeQuery();
+        // Id should be only column
+        id = resultSet.getInt(1);
+        resultSet.close();
+        statement.close();
+        return id;
+    }
+
+    /*
+     * Type: 1 = person, 2 = game
+     */
+    private static LinkedList<Integer> getSeveralRows(Connection connection, Scanner input,
+            LinkedList<Integer> entities, int type) {
         Statement statement = null;
         ResultSet resultSet = null;
         int next = -1;
         boolean exit = false;
+        String query = "SELECT ${type}_id, ${name} FROM ${table}";
+
+        if (type == 1) {
+            query = query.replace("${type}", "employee");
+            query = query.replace("${name}", "name");
+            query = query.replace("${table}", "person");
+        } else if (type == 2) {
+            query = query.replace("${type}", "game");
+            query = query.replace("${name}", "title");
+            query = query.replace("${table}", "game");
+        }
 
         try {
             // Create statement
             statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
             // Make query
-            resultSet = statement.executeQuery("SELECT game_id, title " +
-                    "FROM game ");
+            resultSet = statement.executeQuery(query);
 
             do {
-                System.out.println("Enter game IDs of games worked on");
-                System.out.println("Enter 0 when all games selected");
+                System.out.println("Enter IDs of selections");
+                System.out.println("Enter 0 when all entities selected");
 
                 // Display results
                 Menu.displayResults(resultSet);
@@ -217,7 +396,7 @@ public class Insert {
                     if (next == 0) {
                         exit = true;
                     } else {
-                        games.add(next);
+                        entities.add(next);
                     }
                     resultSet.beforeFirst();
                 } catch (NumberFormatException e) {
@@ -226,7 +405,7 @@ public class Insert {
                 }
             } while (!exit);
         } catch (Exception e) {
-            System.out.println("Issue making games query");
+            System.out.println("Issue making multi-row query");
             e.printStackTrace();
         } finally {
             try {
@@ -238,7 +417,7 @@ public class Insert {
             }
 
         }
-        return games;
+        return entities;
     }
 
     private static int displayPublishers(Connection connection, Scanner input) {
@@ -274,6 +453,40 @@ public class Insert {
         }
 
         return publisher;
+    }
+
+    private static void insertIntoGame(Connection connection,
+            String title,
+            Double profit,
+            String genre,
+            Date releaseDate) {
+        PreparedStatement statement = null;
+
+        try {
+            statement = connection
+                    .prepareStatement("INSERT INTO game (title, profit, genre, release_date) VALUES (?, ?, ?, ?); ");
+            statement.setString(1, title);
+            statement.setDouble(2, profit);
+            statement.setString(3, genre);
+            statement.setDate(4, releaseDate);
+
+            if (statement.executeUpdate() > 1) {
+                System.out.format("Inserted %s into game table", title);
+            }
+
+            connection.commit();
+
+        } catch (SQLException e) {
+            System.out.println("Error inserting game");
+            e.printStackTrace();
+        } finally {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                System.out.println("Error closing resources");
+                e.printStackTrace();
+            }
+        }
     }
 
     private static void insertIntoPerson(
