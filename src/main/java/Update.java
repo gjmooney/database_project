@@ -128,33 +128,15 @@ public class Update {
                     System.out.println("Please enter column name as displayed");
                     columnToUpdate = input.next().toLowerCase();
 
+                    // TODO: parse column name
+
                     // Get new value
                     System.out.println("Please enter the new value");
+                    if (columnToUpdate.equals("release_date")) {
+                        System.out.println("Date format is YYYY-MM-DD");
+                    }
                     newString = input.next();
                     updateString(connection, choice, "game", columnToUpdate, newString);
-
-                    /*
-                     * if (columnToUpdate.equals("title")
-                     * | columnToUpdate.equals("genre")) {
-                     * // Get new title or genre
-                     * newString = input.next();
-                     * updateString(connection, choice, "game", columnToUpdate, newString);
-                     * } else if (columnToUpdate.equals("profit")) {
-                     * // get new profit
-                     * newProfit = input.nextDouble();
-                     * updateDouble(connection, choice, "game", columnToUpdate, newProfit);
-                     * } else if (columnToUpdate.equals("release_date")) {
-                     * // get new date
-                     * 
-                     * // check date format
-                     * 
-                     * // update date
-                     * } else {
-                     * System.out.println("Please enter a valid column name");
-                     * repeat = true;
-                     * }
-                     */
-
                 }
             } while (repeat);
 
