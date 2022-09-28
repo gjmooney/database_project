@@ -33,7 +33,7 @@ public class Insert {
                         personInsertMenu(connection, input);
                         break;
                     case 2:
-                        // doQuery(connection, secondQuery);
+                        gameInsertMenu(connection, input);
                         break;
                     case 3:
                         // doQuery(connection, thirdQuery);
@@ -158,7 +158,7 @@ public class Insert {
 
             // Insert into works_on
             if (games.size() != 0) {
-                insertIntoWorksOn(connection, employeeId, games);
+                insertListIntoTable(connection, employeeId, games, 1);
             }
 
             // Insert into works_for
@@ -200,9 +200,8 @@ public class Insert {
         double profit = 0.0;
         String genre;
         String releaseDateString = null;
-        Date releaseDate;
+        Date releaseDate = null;
         int publisher = 0;
-        int nextPrompt = 0;
         LinkedList<Integer> employees = new LinkedList<>();
         boolean exit = false;
 
@@ -240,92 +239,22 @@ public class Insert {
                 keyId = getId(connection, title, 2, "game");
 
                 // Insert into publish table
+                insertIntoPublish(connection, publisher, keyId);
 
                 // Insert into works_on table
+                insertListIntoTable(connection, keyId, employees, 2);
 
                 employees.clear();
 
             } catch (NumberFormatException e) {
                 System.out.println("Please enter a valid number.");
                 input = new Scanner(System.in);
+            } catch (SQLException e) {
+                System.out.println("SQL issue");
+                e.printStackTrace();
             }
 
         } while (!exit);
-
-        try {
-
-            // Insert into person
-            insertIntoPerson(
-                    connection,
-                    "person",
-                    name,
-                    String.valueOf(keyId),
-                    null,
-                    null,
-                    null,
-                    null);
-
-            if (role == 1) {
-                // Insert into CEO
-                insertIntoPerson(
-                        connection,
-                        "ceo",
-                        null,
-                        String.valueOf(keyId),
-                        null,
-                        null,
-                        null,
-                        null);
-            } else if (role == 2) {
-                // Insert into designer
-                insertIntoPerson(
-                        connection,
-                        "designer",
-                        null,
-                        String.valueOf(keyId),
-                        String.valueOf(salary),
-                        startDate,
-                        null,
-                        null);
-            }
-
-            // Commit employee table inserts
-            connection.commit();
-
-            // Insert into works_on
-            if (games.size() != 0) {
-                insertIntoWorksOn(connection, keyId, games);
-            }
-
-            // Insert into works_for
-            if (publisher != 0) {
-                insertIntoPerson(connection,
-                        "works_for",
-                        null,
-                        String.valueOf(keyId),
-                        null, startDate,
-                        String.valueOf(publisher),
-                        null);
-            }
-
-            connection.commit();
-            games.clear();
-        } catch (SQLException e) {
-            System.out.println("Issue with insert. Rolling back changes");
-            try {
-                connection.rollback();
-            } catch (SQLException e1) {
-                System.out.println("Issue with rollback");
-                e1.printStackTrace();
-            }
-            e.printStackTrace();
-        }
-
-        /*
-         * insertIntoPerson(connection, "person", name, String.valueOf(employeeId),
-         * String.valueOf(salary), startDate,
-         * String.valueOf(publisher), games);
-         */
     }
 
     private static int getId(Connection connection, String name, int type, String tableName) throws SQLException {
@@ -335,21 +264,24 @@ public class Insert {
         int id = 0;
         query = query.replace("${table}", tableName);
 
-        statement = connection.prepareStatement(query);
         if (type == 1) {
             query = query.replace("${id}", "employee_id");
             query = query.replace("${name}", "name");
         } else if (type == 2) {
+            System.out.println("CHECK");
             query = query.replace("${id}", "game_id");
             query = query.replace("${name}", "title");
+            System.out.println("QUERY " + query);
         } else {
             query = query.replace("${id}", "company_id");
             query = query.replace("${name}", "name");
         }
+        statement = connection.prepareStatement(query);
         statement.setString(1, name);
 
         resultSet = statement.executeQuery();
         // Id should be only column
+        resultSet.next();
         id = resultSet.getInt(1);
         resultSet.close();
         statement.close();
@@ -489,6 +421,34 @@ public class Insert {
         }
     }
 
+    private static void insertIntoPublish(Connection connection, int companyId, int gameId) {
+        PreparedStatement statement = null;
+
+        try {
+            statement = connection
+                    .prepareStatement("INSERT INTO publish (company_id, game_id) VALUES (?, ?); ");
+            statement.setInt(1, companyId);
+            statement.setInt(2, gameId);
+
+            if (statement.executeUpdate() > 1) {
+                System.out.println("Inserted into publish table");
+            }
+
+            connection.commit();
+
+        } catch (SQLException e) {
+            System.out.println("Error inserting entry");
+            e.printStackTrace();
+        } finally {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                System.out.println("Error closing resources");
+                e.printStackTrace();
+            }
+        }
+    }
+
     private static void insertIntoPerson(
             Connection connection,
             String tableName,
@@ -511,7 +471,6 @@ public class Insert {
                 values = employeeId + ", '" + name + "' ";
                 query = query.replace("${values}", values);
                 System.out.println("QUERY: " + query);
-
                 break;
             case "ceo":
                 query = query.replace("${columns}", "employee_id");
@@ -547,9 +506,9 @@ public class Insert {
             System.out.println("Issue making person update");
             String message = e.getMessage();
             if (message.contains("Duplicate entry")) {
-                System.out.println("\nSorry, that actor is already in that movie.");
+                System.out.println("\nSorry, that entity is already in the DB.");
             } else if (message.contains("foreign key constraint")) {
-                System.out.println("\nSorry that film or actor does not exist in the database");
+                System.out.println("\nSorry that entity does not exist in the database");
             } else {
                 e.printStackTrace();
             }
@@ -565,7 +524,10 @@ public class Insert {
         }
     }
 
-    private static void insertIntoWorksOn(Connection connection, int employeeId, LinkedList<Integer> games) {
+    /*
+     * type: 1 = list is of games, 2 = list is of people
+     */
+    private static void insertListIntoTable(Connection connection, int keyId, LinkedList<Integer> list, int type) {
 
         PreparedStatement statement = null;
         try {
@@ -573,9 +535,15 @@ public class Insert {
             statement = connection.prepareStatement("INSERT INTO works_on (employee_id, game_id) VALUES (?, ?)");
 
             // Make an update
-            for (Integer gameId : games) {
-                statement.setInt(1, employeeId);
-                statement.setInt(2, gameId);
+            for (Integer listId : list) {
+                if (type == 1) {
+                    statement.setInt(1, keyId);
+                    statement.setInt(2, listId);
+                } else {
+                    statement.setInt(1, listId);
+                    statement.setInt(2, keyId);
+                }
+
                 if (statement.executeUpdate() > 0) {
                     System.out.println("Insert into works_on: SUCCESS");
                 } else {
