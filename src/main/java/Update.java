@@ -239,12 +239,6 @@ public class Update {
             // set the PK
             statement.setInt(2, key);
 
-            System.out.println("DEBUG: KEY=" + key);
-            System.out.println("DEBUG: COLUMN=" + column);
-            System.out.println("DEBUG: TABLE=" + table);
-            System.out.println("DEBUG: NEWVALUE=" + newValue);
-            System.out.println("DEBUG: query=" + query);
-
             // Execute the update
             if (statement.executeUpdate() > 0) {
                 connection.commit();
