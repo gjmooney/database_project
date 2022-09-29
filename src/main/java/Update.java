@@ -127,8 +127,8 @@ public class Update {
                 // CEOs don't have additional info but designers do
                 // so check if the person is a designer here and redisplay
                 // the table with their columns
-                if (tableName.equals("person")) {
-                    checkIfDesigner(connection, choice);
+                if (tableName.equals("person") && checkIfDesigner(connection, choice)) {
+                    tableName = "designer";
                 }
 
                 if (choice != 0) {
@@ -139,6 +139,10 @@ public class Update {
 
                     // TODO: parse column name
 
+                    // Swap back to person table to update designer name
+                    if (tableName.equals("designer") && columnToUpdate.equals("name")) {
+                        tableName = "person";
+                    }
                     // Get new value
                     System.out.println("Please enter the new value for " + columnToUpdate);
                     if (columnToUpdate.equals("release_date")) {
@@ -166,11 +170,12 @@ public class Update {
         }
     }
 
-    private static void checkIfDesigner(Connection connection, int employeeId) {
+    private static boolean checkIfDesigner(Connection connection, int employeeId) {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
-            statement = connection.prepareStatement("SELECT * FROM designer WHERE employee_id=?",
+            statement = connection.prepareStatement(
+                    "SELECT d.employee_id, p.name, d.salary, d.employment_date  FROM designer d JOIN person p ON d.employee_id = p.employee_id  WHERE p.employee_id=?",
                     ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             statement.setInt(1, employeeId);
 
@@ -179,6 +184,7 @@ public class Update {
             if (resultSet.next()) {
                 resultSet.beforeFirst();
                 Menu.displayResults(resultSet);
+                return true;
             }
         } catch (Exception e) {
             // TODO: handle exception
@@ -192,6 +198,7 @@ public class Update {
                 e.printStackTrace();
             }
         }
+        return false;
     }
 
     private static void updateValue(Connection connection, int key, String table, String column,
@@ -204,7 +211,7 @@ public class Update {
         query = query.replace("${column}", column);
 
         // Change PK field based on table
-        if (table.equals("person")) {
+        if (table.equals("person") | table.equals("designer")) {
             query = query.replace("${pk}", EMP_ID);
         } else if (table.equals("game")) {
             query = query.replace("${pk}", GAME_ID);
@@ -231,6 +238,12 @@ public class Update {
 
             // set the PK
             statement.setInt(2, key);
+
+            System.out.println("DEBUG: KEY=" + key);
+            System.out.println("DEBUG: COLUMN=" + column);
+            System.out.println("DEBUG: TABLE=" + table);
+            System.out.println("DEBUG: NEWVALUE=" + newValue);
+            System.out.println("DEBUG: query=" + query);
 
             // Execute the update
             if (statement.executeUpdate() > 0) {
