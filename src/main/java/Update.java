@@ -32,13 +32,13 @@ public class Update {
 
                 switch (choice) {
                     case 1:
-                        updatePerson(connection, input);
+                        updateGameOrPublisher(connection, input, "person");
                         break;
                     case 2:
-                        updateGame(connection, input);
+                        updateGameOrPublisher(connection, input, "game");
                         break;
                     case 3:
-
+                        updateGameOrPublisher(connection, input, "publisher");
                         break;
                     case 4:
                         exit = true;
@@ -82,7 +82,7 @@ public class Update {
                 System.out.println("What would you like the new name to be?");
                 newValue = input.next();
 
-                updateString(connection, choice, "person", "name", newValue);
+                updateValue(connection, choice, "person", "name", newValue);
             }
 
         } catch (NumberFormatException e) {
@@ -102,7 +102,7 @@ public class Update {
         }
     }
 
-    private static void updateGame(Connection connection, Scanner input) {
+    private static void updateGameOrPublisher(Connection connection, Scanner input, String tableName) {
         Statement statement = null;
         ResultSet resultSet = null;
         int choice = 0;
@@ -113,14 +113,23 @@ public class Update {
         try {
             // Display person table
             statement = connection.createStatement();
-            resultSet = statement.executeQuery("SELECT * FROM game");
+            String query = "SELECT * FROM ${table}";
+            query = query.replace("${table}", tableName);
+            resultSet = statement.executeQuery(query);
             Menu.displayResults(resultSet);
 
             do {
                 // Prompt for who to update
-                System.out.println("Which game would you like to update?");
+                System.out.format("Which %s would you like to update?\n", tableName);
                 System.out.println("Enter 0 to cancel");
                 choice = input.nextInt();
+
+                // CEOs don't have additional info but designers do
+                // so check if the person is a designer here and redisplay
+                // the table with their columns
+                if (tableName.equals("person")) {
+                    checkIfDesigner(connection, choice);
+                }
 
                 if (choice != 0) {
                     // prompt for which column to update
@@ -131,12 +140,12 @@ public class Update {
                     // TODO: parse column name
 
                     // Get new value
-                    System.out.println("Please enter the new value");
+                    System.out.println("Please enter the new value for " + columnToUpdate);
                     if (columnToUpdate.equals("release_date")) {
                         System.out.println("Date format is YYYY-MM-DD");
                     }
                     newString = input.next();
-                    updateString(connection, choice, "game", columnToUpdate, newString);
+                    updateValue(connection, choice, tableName, columnToUpdate, newString);
                 }
             } while (repeat);
 
@@ -157,7 +166,35 @@ public class Update {
         }
     }
 
-    private static void updateString(Connection connection, int key, String table, String column,
+    private static void checkIfDesigner(Connection connection, int employeeId) {
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        try {
+            statement = connection.prepareStatement("SELECT * FROM designer WHERE employee_id=?",
+                    ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+            statement.setInt(1, employeeId);
+
+            resultSet = statement.executeQuery();
+
+            if (resultSet.next()) {
+                resultSet.beforeFirst();
+                Menu.displayResults(resultSet);
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+        } finally {
+            try {
+                resultSet.close();
+                statement.close();
+            } catch (SQLException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void updateValue(Connection connection, int key, String table, String column,
             String newValue) {
         PreparedStatement statement = null;
 
@@ -171,17 +208,19 @@ public class Update {
             query = query.replace("${pk}", EMP_ID);
         } else if (table.equals("game")) {
             query = query.replace("${pk}", GAME_ID);
+        } else if (table.equals("publisher")) {
+            query = query.replace("${pk}", COM_ID);
         }
 
         // Create statement
         try {
             statement = connection.prepareStatement(query);
             // Set first PreparedStatement value based on column name
-            if (column.equals("name") | column.equals("genre")) {
+            if (column.equals("name") | column.equals("genre") | column.equals("title")) {
                 statement.setString(1, newValue);
-            } else if (column.equals("profit")) {
+            } else if (column.equals("profit") | column.equals("salary")) {
                 statement.setDouble(1, Double.valueOf(newValue));
-            } else if (column.equals("release_date")) {
+            } else if (column.equals("release_date") | column.equals("employment_date")) {
                 // Parse date before setting
                 if (parseDate(newValue)) {
                     statement.setDate(1, Date.valueOf(newValue));
