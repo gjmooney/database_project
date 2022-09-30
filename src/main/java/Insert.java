@@ -268,17 +268,21 @@ public class Insert {
                 name = input.next();
 
                 // Get people that work there
+                // Only display people not working at a publisher already
                 System.out.format("Please select the people that work at %s", name);
-                employees = getSeveralRows(connection, input, employees, 1);
+                employees = getSeveralRowsExclude(connection, input, employees, 1, "works_for");
 
                 // Get the games published
-                System.out.format("Has %s published any games in our DB?\n", name);
-                System.out.println("Enter 1 if yes");
-                gamePublished = input.nextInt();
-                if (gamePublished == 1) {
-                    games = getSeveralRows(connection, input, employees, 2);
-                }
-
+                // Only display games that dont have a publisher
+                // But games have to have a publisher so don't do this
+                /*
+                 * System.out.format("Has %s published any games in our DB?\n", name);
+                 * System.out.println("Enter 1 if yes");
+                 * gamePublished = input.nextInt();
+                 * if (gamePublished == 1) {
+                 * games = getSeveralRowsExclude(connection, input, employees, 2, "publish");
+                 * }
+                 */
                 exit = true;
 
                 // Insert into publisher table
@@ -289,7 +293,7 @@ public class Insert {
                 keyId = getId(connection, name, 3, "publisher");
 
                 // Insert into publish table
-                insertListIntoTable(connection, keyId, games, "publish", 1);
+                // insertListIntoTable(connection, keyId, games, "publish", 1);
 
                 // Insert into works_for table
                 insertListIntoTable(connection, keyId, employees, "works_for", 2);
