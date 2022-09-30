@@ -40,7 +40,6 @@ public class Menu {
     }
 
     private static void displayMenu(Connection connection) {
-        System.out.println("display");
         int choice = 0;
         Scanner input = new Scanner(System.in);
         boolean exit = false;

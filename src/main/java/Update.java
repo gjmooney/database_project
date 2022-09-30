@@ -32,13 +32,13 @@ public class Update {
 
                 switch (choice) {
                     case 1:
-                        updateGameOrPublisher(connection, input, "person");
+                        updateTable(connection, input, "person");
                         break;
                     case 2:
-                        updateGameOrPublisher(connection, input, "game");
+                        updateTable(connection, input, "game");
                         break;
                     case 3:
-                        updateGameOrPublisher(connection, input, "publisher");
+                        updateTable(connection, input, "publisher");
                         break;
                     case 4:
                         exit = true;
@@ -54,55 +54,7 @@ public class Update {
         } while (!exit);
     }
 
-    private static void updatePerson(Connection connection, Scanner input) {
-        // display the table
-        // ask which to update
-        // prompt which they want to update - don't change IDs
-        // ask for new value
-
-        Statement statement = null;
-        ResultSet resultSet = null;
-        int choice = 0;
-        String newValue;
-
-        try {
-            // Display person table
-            statement = connection.createStatement();
-            resultSet = statement.executeQuery("SELECT * FROM person");
-            Menu.displayResults(resultSet);
-
-            // Prompt for who to update
-            System.out.println("Which person would you like to update?");
-            System.out.println("Enter 0 to cancel");
-            choice = input.nextInt();
-
-            if (choice != 0) {
-                // Person table can only have name for a column
-                // Prompt for new value
-                System.out.println("What would you like the new name to be?");
-                newValue = input.next();
-
-                updateValue(connection, choice, "person", "name", newValue);
-            }
-
-        } catch (NumberFormatException e) {
-            System.out.println("Please enter a valid choice.");
-            input = new Scanner(System.in);
-
-        } catch (SQLException e) {
-            System.out.println("Issue updating");
-            e.printStackTrace();
-        } finally {
-            try {
-                resultSet.close();
-                statement.close();
-            } catch (Exception e) {
-                // TODO: handle exception
-            }
-        }
-    }
-
-    private static void updateGameOrPublisher(Connection connection, Scanner input, String tableName) {
+    private static void updateTable(Connection connection, Scanner input, String tableName) {
         Statement statement = null;
         ResultSet resultSet = null;
         int choice = 0;
@@ -265,50 +217,8 @@ public class Update {
     }
 
     static boolean parseDate(String date) {
+        // Check for YYYY-MM-DD format
         return date.matches("^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$");
 
     }
-
-    /*
-     * private static void updateDouble(Connection connection, int primaryKey,
-     * String table, String columnToUpdate,
-     * Double newValue) {
-     * PreparedStatement statement = null;
-     * 
-     * // Get query template set up
-     * String query = "UPDATE ${table} SET ${column} = ? WHERE ${pk} = ? ";
-     * 
-     * query = query.replace("${table}", table);
-     * query = query.replace("${column}", columnToUpdate);
-     * if (table.equals("game")) {
-     * query = query.replace("${pk}", GAME_ID);
-     * }
-     * 
-     * // Create statement
-     * try {
-     * statement = connection.prepareStatement(query);
-     * statement.setDouble(1, newValue);
-     * statement.setInt(2, primaryKey);
-     * 
-     * if (statement.executeUpdate() > 0) {
-     * connection.commit();
-     * System.out.format("Changed %s to %s", columnToUpdate, newValue);
-     * } else {
-     * connection.rollback();
-     * System.out.println("Error updating");
-     * }
-     * } catch (SQLException e) {
-     * System.out.println("Error updating person");
-     * e.printStackTrace();
-     * } finally {
-     * try {
-     * statement.close();
-     * } catch (SQLException e) {
-     * System.out.println("Issue closing resources");
-     * e.printStackTrace();
-     * }
-     * }
-     * 
-     * }
-     */
 }

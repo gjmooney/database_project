@@ -36,7 +36,7 @@ public class Insert {
                         gameInsertMenu(connection, input);
                         break;
                     case 3:
-                        // doQuery(connection, thirdQuery);
+                        publisherInsertMenu(connection, input);
                         break;
                     case 4:
                         exit = true;
@@ -76,8 +76,6 @@ public class Insert {
             try {
                 System.out.println("What's this persons name?");
                 name = input.next();
-                System.out.println("Please enter their employee id");
-                employeeId = input.nextInt();
                 System.out.println("What's this persons role?");
                 System.out.println("-------------------------");
                 System.out.println("1. CEO");
@@ -118,20 +116,15 @@ public class Insert {
 
         try {
 
-            // Insert into person
-            insertIntoPerson(
-                    connection,
-                    "person",
-                    name,
-                    String.valueOf(employeeId),
-                    null,
-                    null,
-                    null,
-                    null);
+            // Insert into person - has commit
+            insertIntoPerson(connection, name);
+
+            // Get the auto generated ID
+            employeeId = getId(connection, name, 1, "person");
 
             if (role == 1) {
                 // Insert into CEO
-                insertIntoPerson(
+                insertIntoRole(
                         connection,
                         "ceo",
                         null,
@@ -142,7 +135,7 @@ public class Insert {
                         null);
             } else if (role == 2) {
                 // Insert into designer
-                insertIntoPerson(
+                insertIntoRole(
                         connection,
                         "designer",
                         null,
@@ -158,12 +151,12 @@ public class Insert {
 
             // Insert into works_on
             if (games.size() != 0) {
-                insertListIntoTable(connection, employeeId, games, 1);
+                insertListIntoTable(connection, employeeId, games, "works_on", 1);
             }
 
             // Insert into works_for
             if (publisher != 0) {
-                insertIntoPerson(connection,
+                insertIntoRole(connection,
                         "works_for",
                         null,
                         String.valueOf(employeeId),
@@ -211,11 +204,11 @@ public class Insert {
                 // Basic game info
                 System.out.println("What's this games title?");
                 title = input.next();
-                System.out.format("Please enter %s's profit:", title);
+                System.out.format("Please enter %s's profit: ", title);
                 profit = input.nextDouble();
-                System.out.format("Please enter %s's genre:", title);
+                System.out.format("Please enter %s's genre: ", title);
                 genre = input.next();
-                System.out.format("Please enter %s's release date (YYYY-MM-DD)", title);
+                System.out.format("Please enter %s's release date (YYYY-MM-DD): ", title);
                 releaseDateString = input.next();
                 if (Update.parseDate(releaseDateString)) {
                     releaseDate = Date.valueOf(releaseDateString);
@@ -223,12 +216,10 @@ public class Insert {
 
                 // Get the publisher
                 System.out.println("Please select the publisher");
-                System.out.println("-----------------------------");
                 publisher = displayPublishers(connection, input);
 
                 // Get people that worked on it
                 System.out.format("Please select the people that worked on %s", title);
-                System.out.println("-----------------------------");
                 employees = getSeveralRows(connection, input, employees, 1);
                 exit = true;
 
@@ -242,8 +233,9 @@ public class Insert {
                 insertIntoPublish(connection, publisher, keyId);
 
                 // Insert into works_on table
-                insertListIntoTable(connection, keyId, employees, 2);
+                insertListIntoTable(connection, keyId, employees, "works_on", 2);
 
+                connection.commit();
                 employees.clear();
 
             } catch (NumberFormatException e) {
@@ -257,6 +249,69 @@ public class Insert {
         } while (!exit);
     }
 
+    private static void publisherInsertMenu(Connection connection, Scanner input) {
+        // get the publishers name
+        // get employees - must have at least one
+        // get games - can be none
+        String name = null;
+        int keyId = 0;
+        LinkedList<Integer> employees = new LinkedList<>();
+        LinkedList<Integer> games = new LinkedList<>();
+        int gamePublished = 0;
+        boolean exit = false;
+
+        do {
+
+            try {
+                // Basic game info
+                System.out.println("What is the publishers name??");
+                name = input.next();
+
+                // Get people that work there
+                System.out.format("Please select the people that work at %s", name);
+                employees = getSeveralRows(connection, input, employees, 1);
+
+                // Get the games published
+                System.out.format("Has %s published any games in our DB?\n", name);
+                System.out.println("Enter 1 if yes");
+                gamePublished = input.nextInt();
+                if (gamePublished == 1) {
+                    games = getSeveralRows(connection, input, employees, 2);
+                }
+
+                exit = true;
+
+                // Insert into publisher table
+                insertIntoPublisher(connection, name);
+                // connection.commit();
+
+                // Quick query to get the game ID
+                keyId = getId(connection, name, 3, "publisher");
+
+                // Insert into publish table
+                insertListIntoTable(connection, keyId, games, "publish", 1);
+
+                // Insert into works_for table
+                insertListIntoTable(connection, keyId, employees, "works_for", 2);
+
+                connection.commit();
+                employees.clear();
+                games.clear();
+
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+                input = new Scanner(System.in);
+            } catch (SQLException e) {
+                System.out.println("SQL issue");
+                e.printStackTrace();
+            }
+
+        } while (!exit);
+    }
+
+    /*
+     * Type: 1 - person, 2 - game, 3 - publisher
+     */
     private static int getId(Connection connection, String name, int type, String tableName) throws SQLException {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
@@ -298,6 +353,75 @@ public class Insert {
         int next = -1;
         boolean exit = false;
         String query = "SELECT ${type}_id, ${name} FROM ${table}";
+
+        if (type == 1) {
+            query = query.replace("${type}", "employee");
+            query = query.replace("${name}", "name");
+            query = query.replace("${table}", "person");
+        } else if (type == 2) {
+            query = query.replace("${type}", "game");
+            query = query.replace("${name}", "title");
+            query = query.replace("${table}", "game");
+        }
+
+        try {
+            // Create statement
+            statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
+
+            // Make query
+            resultSet = statement.executeQuery(query);
+
+            do {
+                System.out.println("Enter IDs of selections");
+                System.out.println("Enter 0 when all entities selected");
+
+                // Display results
+                Menu.displayResults(resultSet);
+                try {
+                    next = input.nextInt();
+
+                    if (next == 0) {
+                        exit = true;
+                    } else {
+                        entities.add(next);
+                    }
+                    resultSet.beforeFirst();
+                } catch (NumberFormatException e) {
+                    System.out.println("Please enter a valid choice.");
+                    input = new Scanner(System.in);
+                }
+            } while (!exit);
+        } catch (Exception e) {
+            System.out.println("Issue making multi-row query");
+            e.printStackTrace();
+        } finally {
+            try {
+                resultSet.close();
+                statement.close();
+            } catch (SQLException e) {
+                System.out.println("Issue closing resources");
+                e.printStackTrace();
+            }
+
+        }
+        return entities;
+    }
+
+    /*
+     * Type: 1 = person, 2 = game
+     * This version of the method excludes games that have a publisher
+     * and empoylees that have an employer
+     * Exclude is table for the entity to not be on
+     */
+    private static LinkedList<Integer> getSeveralRowsExclude(Connection connection, Scanner input,
+            LinkedList<Integer> entities, int type, String exclude) {
+        Statement statement = null;
+        ResultSet resultSet = null;
+        int next = -1;
+        boolean exit = false;
+        String query = "SELECT ${type}_id, ${name} FROM ${table} WHERE ${type}_id NOT IN (SELECT ${type_id} FROM ${exclude})";
+
+        query = query.replace("${exclude}", exclude);
 
         if (type == 1) {
             query = query.replace("${type}", "employee");
@@ -421,6 +545,34 @@ public class Insert {
         }
     }
 
+    private static void insertIntoPublisher(Connection connection,
+            String name) {
+        PreparedStatement statement = null;
+
+        try {
+            statement = connection
+                    .prepareStatement("INSERT INTO publisher (name) VALUES (?); ");
+            statement.setString(1, name);
+
+            if (statement.executeUpdate() > 1) {
+                System.out.format("Inserted %s into publisher table", name);
+            }
+
+            connection.commit();
+
+        } catch (SQLException e) {
+            System.out.println("Error inserting publisher");
+            e.printStackTrace();
+        } finally {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                System.out.println("Error closing resources");
+                e.printStackTrace();
+            }
+        }
+    }
+
     private static void insertIntoPublish(Connection connection, int companyId, int gameId) {
         PreparedStatement statement = null;
 
@@ -434,7 +586,7 @@ public class Insert {
                 System.out.println("Inserted into publish table");
             }
 
-            connection.commit();
+            // connection.commit();
 
         } catch (SQLException e) {
             System.out.println("Error inserting entry");
@@ -450,6 +602,45 @@ public class Insert {
     }
 
     private static void insertIntoPerson(
+            Connection connection, String name) {
+        PreparedStatement statement = null;
+
+        try {
+            // Create statement
+            statement = connection.prepareStatement("INSERT INTO person (name) VALUES (?) ");
+            statement.setString(1, name);
+
+            // Make an update
+            if (statement.executeUpdate() > 0) {
+                System.out.println("Insert into person : SUCCESS");
+            } else {
+                System.out.println("Insert into person : NO GOOD");
+            }
+            connection.commit();
+
+        } catch (SQLException e) {
+            System.out.println("Issue making person update");
+            String message = e.getMessage();
+            if (message.contains("Duplicate entry")) {
+                System.out.println("\nSorry, that entity is already in the DB.");
+            } else if (message.contains("foreign key constraint")) {
+                System.out.println("\nSorry that entity does not exist in the database");
+            } else {
+                e.printStackTrace();
+            }
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                System.out.println("Issue closing resources");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void insertIntoRole(
             Connection connection,
             String tableName,
             String name,
@@ -466,12 +657,6 @@ public class Insert {
 
         // Replace query params based on table name
         switch (tableName) {
-            case "person":
-                query = query.replace("${columns}", "employee_id, name");
-                values = employeeId + ", '" + name + "' ";
-                query = query.replace("${values}", values);
-                System.out.println("QUERY: " + query);
-                break;
             case "ceo":
                 query = query.replace("${columns}", "employee_id");
                 query = query.replace("${values}", employeeId);
@@ -527,12 +712,24 @@ public class Insert {
     /*
      * type: 1 = list is of games, 2 = list is of people
      */
-    private static void insertListIntoTable(Connection connection, int keyId, LinkedList<Integer> list, int type) {
+    private static void insertListIntoTable(Connection connection, int keyId, LinkedList<Integer> list,
+            String tableName, int type) {
 
         PreparedStatement statement = null;
+        String query = "INSERT INTO ${table} (${columns}) VALUES (?, ?)";
+        query = query.replace("${table}", tableName);
+
+        // Replace query columns based on table name
+        if (tableName.equals("works_on")) {
+            query = query.replace("${columns}", "employee_id, game_id");
+        } else if (tableName.equals("publish")) {
+            query = query.replace("${columns}", "company_id, game_id");
+        } else if (tableName.equals("works_for")) {
+            query = query.replace("${columns}", "employee_id, company_id");
+        }
         try {
             // Create statement
-            statement = connection.prepareStatement("INSERT INTO works_on (employee_id, game_id) VALUES (?, ?)");
+            statement = connection.prepareStatement(query);
 
             // Make an update
             for (Integer listId : list) {
@@ -545,10 +742,11 @@ public class Insert {
                 }
 
                 if (statement.executeUpdate() > 0) {
-                    System.out.println("Insert into works_on: SUCCESS");
+                    System.out.format("Insert into %s: SUCCESS", tableName);
                 } else {
-                    System.out.println("Insert into works_on: NO GOOD");
+                    System.out.format("Insert into %s: NO GOOD", tableName);
                 }
+                // connection.commit();
                 statement.clearParameters();
             }
         } catch (Exception e) {
