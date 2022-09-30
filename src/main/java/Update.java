@@ -60,19 +60,19 @@ public class Update {
         int choice = 0;
         String columnToUpdate;
         String newString;
-        boolean repeat = false;
+        boolean exit = false;
 
-        try {
-            // Display person table
-            statement = connection.createStatement();
-            String query = "SELECT * FROM ${table}";
-            query = query.replace("${table}", tableName);
-            resultSet = statement.executeQuery(query);
-            Menu.displayResults(resultSet);
+        do {
+            try {
+                // Display table
+                statement = connection.createStatement();
+                String query = "SELECT * FROM ${table}";
+                query = query.replace("${table}", tableName);
+                resultSet = statement.executeQuery(query);
+                Menu.displayResults(resultSet);
 
-            do {
-                // Prompt for who to update
-                System.out.format("Which %s would you like to update?\n", tableName);
+                // Prompt for which to update
+                System.out.format("Enter the ID of the %s you would like to update?\n", tableName);
                 System.out.println("Enter 0 to cancel");
                 choice = input.nextInt();
 
@@ -85,7 +85,7 @@ public class Update {
 
                 if (choice != 0) {
                     // prompt for which column to update
-                    System.out.println("Which column would you like to update?");
+                    System.out.println("\nWhich column would you like to update?");
                     System.out.println("Please enter column name as displayed");
                     columnToUpdate = input.next().toLowerCase();
 
@@ -96,30 +96,35 @@ public class Update {
                         tableName = "person";
                     }
                     // Get new value
-                    System.out.println("Please enter the new value for " + columnToUpdate);
+                    System.out.println("\nPlease enter the new value for " + columnToUpdate);
                     if (columnToUpdate.equals("release_date")) {
                         System.out.println("Date format is YYYY-MM-DD");
                     }
                     newString = input.next();
                     updateValue(connection, choice, tableName, columnToUpdate, newString);
                 }
-            } while (repeat);
+                exit = true;
 
-        } catch (NumberFormatException e) {
-            System.out.println("Please enter a valid choice.");
-            input = new Scanner(System.in);
-
-        } catch (SQLException e) {
-            System.out.println("Issue updating");
-            e.printStackTrace();
-        } finally {
-            try {
-                resultSet.close();
-                statement.close();
+            } catch (InputMismatchException e) {
+                System.out.println("Please enter a valid choice.");
+                input = new Scanner(System.in);
+            } catch (SQLException e) {
+                System.out.println("Issue updating");
+                e.printStackTrace();
             } catch (Exception e) {
-                // TODO: handle exception
+                e.printStackTrace();
+                System.out.println("generic Please enter a valid choice.");
+                input = new Scanner(System.in);
+
+            } finally {
+                try {
+                    resultSet.close();
+                    statement.close();
+                } catch (Exception e) {
+                    // TODO: handle exception
+                }
             }
-        }
+        } while (!exit);
     }
 
     private static boolean checkIfDesigner(Connection connection, int employeeId) {

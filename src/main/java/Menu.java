@@ -44,12 +44,12 @@ public class Menu {
         Scanner input = new Scanner(System.in);
         boolean exit = false;
 
-        try {
-            do {
+        do {
+            try {
+
                 choice = 0;
                 System.out.println();
                 System.out.println("Welcome to Games DB");
-                System.out.println("Please select a valid option (1, 2, 3, 4, or 5).");
                 System.out.println("1. Start a Query");
                 System.out.println("2. Insert a DB entry");
                 System.out.println("3. Update a DB entry");
@@ -80,11 +80,12 @@ public class Menu {
                     default:
                         break;
                 }
-            } while (!exit);
-        } catch (InputMismatchException e) {
-            input = new Scanner(System.in);
-            System.out.println("Please enter a valid selection (1, 2, 3, 4, or 5)");
-        }
+
+            } catch (InputMismatchException e) {
+                input = new Scanner(System.in);
+                System.out.println("Please enter a valid selection (1, 2, 3, 4, or 5)");
+            }
+        } while (!exit);
     }
 
     private static Connection connect(String url, String user, String password, String driver)
