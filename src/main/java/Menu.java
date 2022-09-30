@@ -104,7 +104,6 @@ public class Menu {
     }
 
     public static void displayResults(ResultSet resultSet) {
-        System.out.println("display");
         try {
 
             // Get number of columns
@@ -123,6 +122,7 @@ public class Menu {
                 headers.append(String.format("%-20s", column).toUpperCase());
             }
 
+            System.out.println();
             // Print header row
             System.out.println(headers);
             for (int i = 0; i < columns * 20; i++) {
