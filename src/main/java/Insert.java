@@ -67,7 +67,7 @@ public class Insert {
         String startDate = null;
         int role = 0;
         int publisher = 0;
-        int nextPrompt = 0;
+        String nextPrompt = null;
         LinkedList<Integer> games = new LinkedList<>();
         boolean exit = false;
 
@@ -88,27 +88,33 @@ public class Insert {
                     salary = input.nextDouble();
                     System.out.println("Please enter their start date (YYYY-MM-DD)");
                     startDate = input.next();
+                    if (!Update.parseDate(startDate)) {
+                        throw new NumberFormatException();
+                    }
                 }
 
                 System.out.println("Enter 1 if they have worked on any games in our DB");
-                nextPrompt = input.nextInt();
-                if (nextPrompt == 1) {
+                nextPrompt = input.next();
+                if (String.valueOf(nextPrompt).equals("1")) {
                     System.out.println("-----------------------------");
                     getSeveralRows(connection, input, games, 2);
-                    nextPrompt = 0;
+                    nextPrompt = null;
                 }
 
                 System.out.println("Enter 1 if they work for a publisher in our DB");
-                nextPrompt = input.nextInt();
-                if (nextPrompt == 1) {
+                nextPrompt = input.next();
+                if (String.valueOf(nextPrompt).equals("1")) {
                     System.out.println("-----------------------------");
                     publisher = displayPublishers(connection, input);
-                    nextPrompt = 0;
+                    nextPrompt = null;
                 }
                 exit = true;
 
             } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid choice.");
+                System.out.println("Please enter a valid choice.\n");
+                input = new Scanner(System.in);
+            } catch (InputMismatchException e) {
+                System.out.println("Please enter a valid choice.\n");
                 input = new Scanner(System.in);
             }
 
@@ -212,14 +218,17 @@ public class Insert {
                 releaseDateString = input.next();
                 if (Update.parseDate(releaseDateString)) {
                     releaseDate = Date.valueOf(releaseDateString);
+                } else {
+                    throw new NumberFormatException();
                 }
 
                 // Get the publisher
-                System.out.println("Please select the publisher");
+                System.out.println("\nPlease select the publisher");
                 publisher = displayPublishers(connection, input);
 
                 // Get people that worked on it
                 System.out.format("Please select the people that worked on %s", title);
+                System.out.println();
                 employees = getSeveralRows(connection, input, employees, 1);
                 exit = true;
 
@@ -239,7 +248,10 @@ public class Insert {
                 employees.clear();
 
             } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid number.");
+                System.out.println("Please enter a valid number.\n");
+                input = new Scanner(System.in);
+            } catch (InputMismatchException e) {
+                System.out.println("Please enter a valid amount\n");
                 input = new Scanner(System.in);
             } catch (SQLException e) {
                 System.out.println("SQL issue");
@@ -390,9 +402,14 @@ public class Insert {
                         entities.add(next);
                     }
                     resultSet.beforeFirst();
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException | InputMismatchException e) {
+                    // Clears the input buffer if there was a problem
+                    input.next();
+                    resultSet.beforeFirst();
                     System.out.println("Please enter a valid choice.");
                     input = new Scanner(System.in);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             } while (!exit);
         } catch (Exception e) {
@@ -488,7 +505,7 @@ public class Insert {
 
         try {
             // Create statement
-            statement = connection.createStatement();
+            statement = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
 
             // Make query
             resultSet = statement.executeQuery("SELECT company_id, name " +
@@ -504,6 +521,11 @@ public class Insert {
                     }
                 } catch (NumberFormatException e) {
                     System.out.println("Please enter a valid choice.");
+                    resultSet.beforeFirst();
+                    input = new Scanner(System.in);
+                } catch (InputMismatchException e) {
+                    resultSet.beforeFirst();
+                    System.out.println("Please enter a valid publisher ID");
                     input = new Scanner(System.in);
                 }
             } while (!exit);
@@ -750,6 +772,7 @@ public class Insert {
                 } else {
                     System.out.format("Insert into %s: NO GOOD", tableName);
                 }
+                System.out.println();
                 // connection.commit();
                 statement.clearParameters();
             }

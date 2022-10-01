@@ -7,12 +7,26 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Scanner;
 
 public class Update {
     static final String EMP_ID = "employee_id";
     static final String GAME_ID = "game_id";
     static final String COM_ID = "company_id";
+    static final List<String> columnNames = List.of(
+            "employee_id",
+            "name",
+            "salary",
+            "employment_date",
+            "company_id",
+            "game_id",
+            "title",
+            "profit",
+            "genre",
+            "release_date",
+            "reviewer",
+            "score");
 
     public static void updateMenu(Scanner input, Connection connection) {
         int choice = 0;
@@ -61,6 +75,7 @@ public class Update {
         String columnToUpdate;
         String newString;
         boolean exit = false;
+        boolean validColumn = false;
 
         do {
             try {
@@ -84,12 +99,18 @@ public class Update {
                 }
 
                 if (choice != 0) {
-                    // prompt for which column to update
-                    System.out.println("\nWhich column would you like to update?");
-                    System.out.println("Please enter column name as displayed");
-                    columnToUpdate = input.next().toLowerCase();
 
-                    // TODO: parse column name
+                    do {
+                        // prompt for which column to update
+                        System.out.println("\nWhich column would you like to update?");
+                        System.out.println("Please enter column name as displayed");
+                        columnToUpdate = input.next().toLowerCase();
+                        if (parseColumn(columnToUpdate)) {
+                            validColumn = true;
+                        } else {
+                            System.out.println("Please enter a valid column name");
+                        }
+                    } while (!validColumn);
 
                     // Swap back to person table to update designer name
                     if (tableName.equals("designer") && columnToUpdate.equals("name")) {
@@ -183,7 +204,12 @@ public class Update {
             if (column.equals("name") | column.equals("genre") | column.equals("title")) {
                 statement.setString(1, newValue);
             } else if (column.equals("profit") | column.equals("salary")) {
-                statement.setDouble(1, Double.valueOf(newValue));
+                if (parseDouble(newValue)) {
+                    statement.setDouble(1, Double.valueOf(newValue));
+                } else {
+                    throw new NumberFormatException();
+                }
+
             } else if (column.equals("release_date") | column.equals("employment_date")) {
                 // Parse date before setting
                 if (parseDate(newValue)) {
@@ -225,5 +251,19 @@ public class Update {
         // Check for YYYY-MM-DD format
         return date.matches("^\\d{4}\\-(0[1-9]|1[012])\\-(0[1-9]|[12][0-9]|3[01])$");
 
+    }
+
+    private static boolean parseDouble(String value) {
+        try {
+            Double.valueOf(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private static boolean parseColumn(String column) {
+
+        return columnNames.contains(column);
     }
 }
