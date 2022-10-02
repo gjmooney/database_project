@@ -93,6 +93,7 @@ public class Insert {
                     }
                 }
 
+                // CEOs cant work on games
                 System.out.println("Enter 1 if they have worked on any games in our DB");
                 nextPrompt = input.next();
                 if (String.valueOf(nextPrompt).equals("1")) {
@@ -318,7 +319,7 @@ public class Insert {
     /*
      * Type: 1 - person, 2 - game, 3 - publisher
      */
-    private static int getId(Connection connection, String name, int type, String tableName) throws SQLException {
+    static int getId(Connection connection, String name, int type, String tableName) throws SQLException {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         String query = "SELECT ${id} FROM ${table} WHERE ${name}=?";

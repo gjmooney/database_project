@@ -67,10 +67,10 @@ public class Query {
                         doQuery(connection, fourthQuery);
                         break;
                     case 5:
-                        doQuery(connection, "SELECT * FROM person");
+                        personInfo(connection, input);
                         break;
                     case 6:
-                        doQuery(connection, "SELECT * FROM game");
+                        gameInfo(connection, input);
                         break;
                     case 7:
                         doQuery(connection, "SELECT * FROM publisher");
@@ -87,6 +87,60 @@ public class Query {
                 System.out.println("Please enter a valid selection");
             }
         } while (!exitQuery);
+    }
+
+    private static void personInfo(Connection connection, Scanner input) {
+        boolean exit = false;
+        int choice = -1;
+        String query = null;
+        doQuery(connection, "SELECT * FROM person");
+
+        do {
+            try {
+                System.out.println("\nEnter ID of person to see what games they've worked on ");
+                System.out.println("Enter 0 to go back");
+                choice = input.nextInt();
+
+                if (choice != 0) {
+                    query = "SELECT g.title FROM game g, works_on wo WHERE wo.employee_id=${id} AND wo.game_id = g.game_id";
+                    query = query.replace("${id}", String.valueOf(choice));
+                    doQuery(connection, query);
+                } else {
+                    exit = true;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Please enter a valid choice.");
+                input = new Scanner(System.in);
+            }
+
+        } while (!exit);
+    }
+
+    private static void gameInfo(Connection connection, Scanner input) {
+        boolean exit = false;
+        int choice = -1;
+        String query = null;
+        doQuery(connection, "SELECT * FROM game");
+
+        do {
+            try {
+                System.out.println("\nEnter ID of a game to see which company published the game");
+                System.out.println("Enter 0 to go back");
+                choice = input.nextInt();
+
+                if (choice != 0) {
+                    query = "SELECT p.name  FROM publisher p, publish p2 WHERE p2.game_id=${id} AND p.company_id  = p2.company_id";
+                    query = query.replace("${id}", String.valueOf(choice));
+                    doQuery(connection, query);
+                } else {
+                    exit = true;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Please enter a valid choice.");
+                input = new Scanner(System.in);
+            }
+
+        } while (!exit);
     }
 
     private static void doQuery(Connection connection, String query) {
