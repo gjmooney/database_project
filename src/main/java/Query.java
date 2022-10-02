@@ -73,7 +73,7 @@ public class Query {
                         gameInfo(connection, input);
                         break;
                     case 7:
-                        doQuery(connection, "SELECT * FROM publisher");
+                        publisherInfo(connection, input);
                         break;
                     case 8:
                         exitQuery = true;
@@ -130,6 +130,33 @@ public class Query {
 
                 if (choice != 0) {
                     query = "SELECT p.name  FROM publisher p, publish p2 WHERE p2.game_id=${id} AND p.company_id  = p2.company_id";
+                    query = query.replace("${id}", String.valueOf(choice));
+                    doQuery(connection, query);
+                } else {
+                    exit = true;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Please enter a valid choice.");
+                input = new Scanner(System.in);
+            }
+
+        } while (!exit);
+    }
+
+    private static void publisherInfo(Connection connection, Scanner input) {
+        boolean exit = false;
+        int choice = -1;
+        String query = null;
+        doQuery(connection, "SELECT * FROM publisher");
+
+        do {
+            try {
+                System.out.println("\nEnter ID of a publisher to see which who works there");
+                System.out.println("Enter 0 to go back");
+                choice = input.nextInt();
+
+                if (choice != 0) {
+                    query = "SELECT p2.name FROM publisher p INNER JOIN works_for wf ON p.company_id = wf.company_id INNER JOIN person p2 ON p2.employee_id = wf.employee_id WHERE p.company_id = ${id};";
                     query = query.replace("${id}", String.valueOf(choice));
                     doQuery(connection, query);
                 } else {
