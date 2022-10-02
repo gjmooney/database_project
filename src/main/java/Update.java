@@ -142,7 +142,7 @@ public class Update {
                     resultSet.close();
                     statement.close();
                 } catch (Exception e) {
-                    // TODO: handle exception
+                    System.out.println("Issue updating table");
                 }
             }
         } while (!exit);
@@ -164,15 +164,15 @@ public class Update {
                 Menu.displayResults(resultSet);
                 return true;
             }
-        } catch (Exception e) {
-            // TODO: handle exception
+        } catch (SQLException e) {
+            System.out.println("Issue checking if person is a designer");
             e.printStackTrace();
         } finally {
             try {
                 resultSet.close();
                 statement.close();
             } catch (SQLException e) {
-                // TODO Auto-generated catch block
+                System.out.println("Issue checking if person is a designer");
                 e.printStackTrace();
             }
         }
@@ -232,7 +232,7 @@ public class Update {
             }
         } catch (NumberFormatException e) {
             System.out.println("Bad number format");
-            e.printStackTrace();
+            // e.printStackTrace();
         } catch (SQLException e) {
             System.out.println("Error updating person");
             e.printStackTrace();

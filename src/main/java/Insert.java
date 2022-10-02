@@ -269,7 +269,6 @@ public class Insert {
         int keyId = 0;
         LinkedList<Integer> employees = new LinkedList<>();
         LinkedList<Integer> games = new LinkedList<>();
-        int gamePublished = 0;
         boolean exit = false;
 
         do {
@@ -284,17 +283,8 @@ public class Insert {
                 System.out.format("Please select the people that work at %s", name);
                 employees = getSeveralRowsExclude(connection, input, employees, 1, "works_for");
 
-                // Get the games published
-                // Only display games that dont have a publisher
-                // But games have to have a publisher so don't do this
-                /*
-                 * System.out.format("Has %s published any games in our DB?\n", name);
-                 * System.out.println("Enter 1 if yes");
-                 * gamePublished = input.nextInt();
-                 * if (gamePublished == 1) {
-                 * games = getSeveralRowsExclude(connection, input, employees, 2, "publish");
-                 * }
-                 */
+                // Games require a publisher so there can't be any
+                // games without one, so we don' prompt for that
                 exit = true;
 
                 // Insert into publisher table
