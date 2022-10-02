@@ -94,12 +94,14 @@ public class Insert {
                 }
 
                 // CEOs cant work on games
-                System.out.println("Enter 1 if they have worked on any games in our DB");
-                nextPrompt = input.next();
-                if (String.valueOf(nextPrompt).equals("1")) {
-                    System.out.println("-----------------------------");
-                    getSeveralRows(connection, input, games, 2);
-                    nextPrompt = null;
+                if (role != 1) {
+                    System.out.println("Enter 1 if they have worked on any games in our DB");
+                    nextPrompt = input.next();
+                    if (String.valueOf(nextPrompt).equals("1")) {
+                        System.out.println("-----------------------------");
+                        getSeveralRows(connection, input, games, 2);
+                        nextPrompt = null;
+                    }
                 }
 
                 System.out.println("Enter 1 if they work for a publisher in our DB");
@@ -111,14 +113,10 @@ public class Insert {
                 }
                 exit = true;
 
-            } catch (NumberFormatException e) {
-                System.out.println("Please enter a valid choice.\n");
-                input = new Scanner(System.in);
-            } catch (InputMismatchException e) {
+            } catch (NumberFormatException | InputMismatchException e) {
                 System.out.println("Please enter a valid choice.\n");
                 input = new Scanner(System.in);
             }
-
         } while (!exit);
 
         try {
@@ -248,11 +246,8 @@ public class Insert {
                 connection.commit();
                 employees.clear();
 
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException | InputMismatchException e) {
                 System.out.println("Please enter a valid number.\n");
-                input = new Scanner(System.in);
-            } catch (InputMismatchException e) {
-                System.out.println("Please enter a valid amount\n");
                 input = new Scanner(System.in);
             } catch (SQLException e) {
                 System.out.println("SQL issue");
@@ -285,18 +280,14 @@ public class Insert {
                 employees = getSeveralRowsExclude(connection, input, employees, 1, "works_for");
 
                 // Games require a publisher so there can't be any
-                // games without one, so we don' prompt for that
+                // games without one, so we don't prompt for that
                 exit = true;
 
                 // Insert into publisher table
                 insertIntoPublisher(connection, name);
-                // connection.commit();
 
                 // Quick query to get the game ID
                 keyId = getId(connection, name, 3, "publisher");
-
-                // Insert into publish table
-                // insertListIntoTable(connection, keyId, games, "publish", 1);
 
                 // Insert into works_for table
                 insertListIntoTable(connection, keyId, employees, "works_for", 2);
@@ -422,7 +413,7 @@ public class Insert {
     /*
      * Type: 1 = person, 2 = game
      * This version of the method excludes games that have a publisher
-     * and empoylees that have an employer
+     * and employees that have an employer
      * Exclude is table for the entity to not be on
      */
     private static LinkedList<Integer> getSeveralRowsExclude(Connection connection, Scanner input,
