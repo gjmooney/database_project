@@ -23,7 +23,8 @@ public class Insert {
             System.out.println("1. Person");
             System.out.println("2. Game");
             System.out.println("3. Publisher");
-            System.out.println("4. Return to main menu");
+            System.out.println("4. Rating");
+            System.out.println("5. Return to main menu");
 
             try {
                 choice = input.nextInt();
@@ -39,6 +40,9 @@ public class Insert {
                         publisherInsertMenu(connection, input);
                         break;
                     case 4:
+                        ratingInsertMenu(connection, input);
+                        break;
+                    case 5:
                         exit = true;
                         break;
                     default:
@@ -307,6 +311,58 @@ public class Insert {
         } while (!exit);
     }
 
+    private static void ratingInsertMenu(Connection connection, Scanner input) {
+        String reviewer = null;
+        int score = 0;
+        boolean exit = false;
+        int gameId = -1;
+        do {
+
+            try {
+                // Get the game
+                listGames(connection);
+                gameId = input.nextInt();
+                if (gameId != 0) {
+                    // Get reviewer
+                    System.out.println("Enter the name of the reviewer");
+                    reviewer = input.next();
+
+                    // Get score
+                    System.out.println("Enter the score the game received");
+                    System.out.println("Whole numbers only, please");
+                    score = input.nextInt();
+
+                    // Insert
+                    insertIntoRating(connection, gameId, reviewer, score);
+
+                }
+                exit = true;
+
+            } catch (NumberFormatException | InputMismatchException e) {
+                System.out.println("Please enter a valid number.");
+                input.next();
+                input = new Scanner(System.in);
+            } catch (SQLException e) {
+                System.out.println("SQL issue");
+                e.printStackTrace();
+            }
+
+        } while (!exit);
+    }
+
+    private static void listGames(Connection connection) throws SQLException {
+        Statement statement = null;
+        ResultSet resultSet = null;
+
+        statement = connection.createStatement();
+
+        resultSet = statement.executeQuery("SELECT * FROM game");
+        System.out.println("Enter the ID of the game being reviewed");
+        System.out.println("Enter 0 to exit");
+        Menu.displayResults(resultSet);
+
+    }
+
     /*
      * Type: 1 - person, 2 - game, 3 - publisher
      */
@@ -570,6 +626,36 @@ public class Insert {
 
         } catch (SQLException e) {
             System.out.println("Error inserting publisher");
+            e.printStackTrace();
+        } finally {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                System.out.println("Error closing resources");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void insertIntoRating(Connection connection,
+            int gameId, String reviewer, int score) {
+        PreparedStatement statement = null;
+
+        try {
+            statement = connection
+                    .prepareStatement("INSERT INTO rating (game_id, reviewer, score) VALUES (?, ?, ?); ");
+            statement.setInt(1, gameId);
+            statement.setString(2, reviewer);
+            statement.setInt(3, score);
+
+            if (statement.executeUpdate() > 1) {
+                System.out.println("Inserted into rating table");
+            }
+
+            connection.commit();
+
+        } catch (SQLException e) {
+            System.out.println("Error inserting rating");
             e.printStackTrace();
         } finally {
             try {

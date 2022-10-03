@@ -39,7 +39,8 @@ public class Update {
             System.out.println("1. Person");
             System.out.println("2. Game");
             System.out.println("3. Publisher");
-            System.out.println("4. Return to main menu");
+            System.out.println("4. Rating");
+            System.out.println("5. Return to main menu");
 
             try {
                 choice = input.nextInt();
@@ -55,6 +56,9 @@ public class Update {
                         updateTable(connection, input, "publisher");
                         break;
                     case 4:
+                        updateTable(connection, input, "rating");
+                        break;
+                    case 5:
                         exit = true;
                         break;
                     default:
@@ -76,6 +80,7 @@ public class Update {
         String newString;
         boolean exit = false;
         boolean validColumn = false;
+        String reviewer = null;
 
         do {
             try {
@@ -91,14 +96,18 @@ public class Update {
                 System.out.println("Enter 0 to cancel");
                 choice = input.nextInt();
 
-                // CEOs don't have additional info but designers do
-                // so check if the person is a designer here and redisplay
-                // the table with their columns
-                if (tableName.equals("person") && checkIfDesigner(connection, choice)) {
-                    tableName = "designer";
-                }
-
                 if (choice != 0) {
+                    // Get the second PK for rating table
+                    if (tableName.equals("rating")) {
+                        reviewer = getReviewer(connection, input);
+                    }
+
+                    // CEOs don't have additional info but designers do
+                    // so check if the person is a designer here and redisplay
+                    // the table with their columns
+                    if (tableName.equals("person") && checkAndDisplayIfDesigner(connection, choice)) {
+                        tableName = "designer";
+                    }
 
                     do {
                         // prompt for which column to update
@@ -122,7 +131,12 @@ public class Update {
                         System.out.println("Date format is YYYY-MM-DD");
                     }
                     newString = input.next();
-                    updateValue(connection, choice, tableName, columnToUpdate, newString);
+
+                    if (tableName.equals("rating")) {
+                        updateValue(connection, choice, tableName, columnToUpdate, newString, reviewer);
+                    } else {
+                        updateValue(connection, choice, tableName, columnToUpdate, newString, null);
+                    }
                 }
                 exit = true;
 
@@ -148,7 +162,47 @@ public class Update {
         } while (!exit);
     }
 
-    private static boolean checkIfDesigner(Connection connection, int employeeId) {
+    private static String getReviewer(Connection connection, Scanner input) {
+        String reviewer = null;
+        boolean exit = false;
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+
+        System.out.println("Please enter the name of the reviewer as well");
+        do {
+            try {
+
+                reviewer = input.next();
+                statement = connection.prepareStatement("SELECT reviewer FROM rating WHERE reviewer = ?");
+                statement.setString(1, reviewer);
+
+                resultSet = statement.executeQuery();
+
+                if (!resultSet.next()) {
+                    System.out.println("Reviewer not found, please try again");
+                    statement.clearParameters();
+                } else {
+                    exit = true;
+                    return reviewer;
+                }
+
+            } catch (SQLException e) {
+                System.out.println("Issue querying rating table");
+                e.printStackTrace();
+            } finally {
+                try {
+                    resultSet.close();
+                    statement.close();
+                } catch (SQLException e) {
+                    System.out.println("Issue querying rating table");
+                    e.printStackTrace();
+                }
+            }
+        } while (!exit);
+        return reviewer;
+    }
+
+    private static boolean checkAndDisplayIfDesigner(Connection connection, int employeeId) {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
         try {
@@ -180,13 +234,16 @@ public class Update {
     }
 
     private static void updateValue(Connection connection, int key, String table, String column,
-            String newValue) {
+            String newValue, String reviewer) {
         PreparedStatement statement = null;
 
         // Get query template set up
         String query = "UPDATE ${table} SET ${column} = ? WHERE ${pk} = ? ";
         query = query.replace("${table}", table);
         query = query.replace("${column}", column);
+
+        // SEcond PK for rating table
+        query = query.replace("${pk} = ?", "${pk} = ? AND reviewer = ?");
 
         // Change PK field based on table
         if (table.equals("person") | table.equals("designer")) {
@@ -195,6 +252,8 @@ public class Update {
             query = query.replace("${pk}", GAME_ID);
         } else if (table.equals("publisher")) {
             query = query.replace("${pk}", COM_ID);
+        } else if (table.equals("rating")) {
+            query = query.replace("${pk}", GAME_ID);
         }
 
         // Create statement
@@ -203,6 +262,7 @@ public class Update {
             // Set first PreparedStatement value based on column name
             if (column.equals("name") | column.equals("genre") | column.equals("title")) {
                 statement.setString(1, newValue);
+
             } else if (column.equals("profit") | column.equals("salary")) {
                 if (parseDouble(newValue)) {
                     statement.setDouble(1, Double.valueOf(newValue));
@@ -217,10 +277,23 @@ public class Update {
                 } else {
                     throw new NumberFormatException();
                 }
+
+            } else if (column.equals("score")) {
+                if (parseInt(newValue)) {
+                    statement.setInt(1, Integer.valueOf(newValue));
+                    statement.setString(3, reviewer);
+                } else {
+                    throw new NumberFormatException();
+                }
+
+            } else if (column.equals("reviewer")) {
+                statement.setString(1, newValue);
+                statement.setString(3, reviewer);
             }
 
             // set the PK
             statement.setInt(2, key);
+            System.out.println("QUERY: " + statement);
 
             // Execute the update
             if (statement.executeUpdate() > 0) {
@@ -234,7 +307,7 @@ public class Update {
             System.out.println("Bad number format");
             // e.printStackTrace();
         } catch (SQLException e) {
-            System.out.println("Error updating person");
+            System.out.println("Error updating " + table + " table");
             e.printStackTrace();
         } finally {
             try {
@@ -256,6 +329,15 @@ public class Update {
     private static boolean parseDouble(String value) {
         try {
             Double.valueOf(value);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private static boolean parseInt(String value) {
+        try {
+            Integer.valueOf(value);
             return true;
         } catch (NumberFormatException e) {
             return false;
