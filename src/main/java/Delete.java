@@ -21,7 +21,9 @@ public class Delete {
             System.out.println("2. Game");
             System.out.println("3. Publisher");
             System.out.println("4. Rating");
-            System.out.println("5. Return to main menu");
+            System.out.println("5. Works For");
+            System.out.println("6. Works On");
+            System.out.println("7. Return to main menu");
 
             try {
                 choice = input.nextInt();
@@ -40,6 +42,12 @@ public class Delete {
                         deleteRating(connection, input);
                         break;
                     case 5:
+                        removeFromWorksFor(connection, input);
+                        break;
+                    case 6:
+                        removeFromWorksOn(connection, input);
+                        break;
+                    case 7:
                         exit = true;
                         break;
                     default:
@@ -310,6 +318,127 @@ public class Delete {
                 e.printStackTrace();
             }
         }
+    }
+
+    private static void removeFromWorksFor(Connection connection, Scanner input) {
+        int empId = 0;
+        Statement statement = null;
+        PreparedStatement ps = null;
+        ResultSet resultSet = null;
+        boolean exit = false;
+
+        do {
+            try {
+                // Create statement
+                statement = connection.createStatement();
+
+                // Make query
+                resultSet = statement.executeQuery("SELECT * " +
+                        "FROM works_for ");
+
+                // Display results
+                Menu.displayResults(resultSet);
+                // Get employee_id to delete
+                System.out.println("Enter employee ID to remove from employment record");
+                System.out.println("Enter 0 if you don't want to remove one");
+                // get game_id
+                empId = input.nextInt();
+
+                if (empId != 0) {
+                    ps = connection.prepareStatement("DELETE FROM works_for WHERE employee_id = ?");
+                    ps.setInt(1, empId);
+
+                    if (ps.executeUpdate() > 0) {
+                        System.out.println("Employment record was removed from works_for table");
+                        connection.commit();
+                    } else {
+                        System.out.println("Employment record was not removed from table");
+                        connection.rollback();
+                    }
+                }
+                exit = true;
+
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid choice.");
+                input = new Scanner(System.in);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    System.out.println("Issue closing resources");
+                    e.printStackTrace();
+                }
+            }
+        } while (!exit);
+
+    }
+
+    private static void removeFromWorksOn(Connection connection, Scanner input) {
+        boolean exit = false;
+        int empId = -1;
+        int gameId = 0;
+        Statement statement = null;
+        PreparedStatement ps = null;
+        ResultSet resultSet = null;
+
+        do {
+            try {
+                // Display table
+                statement = connection.createStatement();
+                String query = "SELECT p.employee_id, p.name, g.game_id, g.title " +
+                        "FROM works_on wo, person p, game g " +
+                        "WHERE p.employee_id = wo.employee_id " +
+                        "AND g.game_id = wo.game_id; ";
+                resultSet = statement.executeQuery(query);
+                Menu.displayResults(resultSet);
+
+                // Prompt for which to update
+                System.out.println("\nEnter the employee ID of the record to modify");
+                empId = input.nextInt();
+
+                System.out.println("\nEnter the game ID of the record to modify");
+                System.out.println("Enter 0 to cancel");
+                gameId = input.nextInt();
+
+                if (empId != 0 && gameId != 0) {
+
+                    ps = connection.prepareStatement(
+                            "DELETE FROM works_on WHERE game_id = ? AND employee_id = ?;");
+                    ps.setInt(1, gameId);
+                    ps.setInt(2, empId);
+
+                    if (ps.executeUpdate() > 0) {
+                        System.out.println("Deleting was successful");
+                        connection.commit();
+                    } else {
+                        System.out.println("Deleting was unsuccessful");
+                        connection.rollback();
+
+                    }
+                }
+                exit = true;
+
+            } catch (SQLException e) {
+                System.out.println("Issue deleting from works_on");
+                e.printStackTrace();
+            } catch (InputMismatchException e) {
+                System.out.println("Please enter valid selection");
+                input = new Scanner(System.in);
+            } finally {
+                try {
+                    resultSet.close();
+                    if (ps != null) {
+                        ps.close();
+                    }
+                    statement.close();
+                } catch (Exception e) {
+                    System.out.println("Issue updating works_on");
+                }
+            }
+        } while (!exit);
+
     }
 
 }
