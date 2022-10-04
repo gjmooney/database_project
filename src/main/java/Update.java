@@ -190,7 +190,7 @@ public class Update {
                         "p2.company_id, p2.name  " +
                         "FROM works_for wf " +
                         "INNER JOIN person p ON p.employee_id = wf.employee_id " +
-                        "INNER JOIN publisher p2 ON p2.company_id = wf.company_id ";
+                        "INNER JOIN publisher p2 ON p2.company_id = wf.company_id;";
                 resultSet = statement.executeQuery(query);
                 Menu.displayResults(resultSet);
 
@@ -260,7 +260,7 @@ public class Update {
                 String query = "SELECT p.employee_id, p.name, g.game_id, g.title " +
                         "FROM works_on wo, person p, game g " +
                         "WHERE p.employee_id = wo.employee_id " +
-                        "AND g.game_id = wo.game_id; ";
+                        "AND g.game_id = wo.game_id;";
                 resultSet = statement.executeQuery(query);
                 Menu.displayResults(resultSet);
 
@@ -352,7 +352,7 @@ public class Update {
                         "p2.name " +
                         "FROM game g " +
                         "INNER JOIN publish p ON g.game_id = p.game_id " +
-                        "INNER JOIN publisher p2 ON p2.company_id = p.company_id  ";
+                        "INNER JOIN publisher p2 ON p2.company_id = p.company_id;";
                 resultSet = statement.executeQuery(query);
                 Menu.displayResults(resultSet);
 
@@ -417,7 +417,7 @@ public class Update {
             try {
 
                 reviewer = input.next();
-                statement = connection.prepareStatement("SELECT reviewer FROM rating WHERE reviewer = ?");
+                statement = connection.prepareStatement("SELECT reviewer FROM rating WHERE reviewer = ?;");
                 statement.setString(1, reviewer);
 
                 resultSet = statement.executeQuery();
@@ -451,7 +451,7 @@ public class Update {
         ResultSet resultSet = null;
         try {
             statement = connection.prepareStatement(
-                    "SELECT d.employee_id, p.name, d.salary, d.employment_date  FROM designer d JOIN person p ON d.employee_id = p.employee_id  WHERE p.employee_id=?",
+                    "SELECT d.employee_id, p.name, d.salary, d.employment_date  FROM designer d JOIN person p ON d.employee_id = p.employee_id  WHERE p.employee_id=?;",
                     ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_UPDATABLE);
             statement.setInt(1, employeeId);
 

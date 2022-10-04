@@ -48,7 +48,10 @@ public class Query {
             System.out.println("5. List all persons");
             System.out.println("6. List all games");
             System.out.println("7. List all publishers");
-            System.out.println("8. Return to main menu");
+            System.out.println("8. List Publish");
+            System.out.println("9. List Works On");
+            System.out.println("10. List Works For");
+            System.out.println("11. Return to main menu");
 
             try {
                 choice = input.nextInt();
@@ -76,6 +79,26 @@ public class Query {
                         publisherInfo(connection, input);
                         break;
                     case 8:
+                        doQuery(connection, "SELECT g.game_id, g.title, p2.company_id, " +
+                                "p2.name " +
+                                "FROM game g " +
+                                "INNER JOIN publish p ON g.game_id = p.game_id " +
+                                "INNER JOIN publisher p2 ON p2.company_id = p.company_id  ");
+                        break;
+                    case 9:
+                        doQuery(connection, "SELECT p.employee_id, p.name, g.game_id, g.title " +
+                                "FROM works_on wo, person p, game g " +
+                                "WHERE p.employee_id = wo.employee_id " +
+                                "AND g.game_id = wo.game_id; ");
+                        break;
+                    case 10:
+                        doQuery(connection, "SELECT p.employee_id, p.name, " +
+                                "p2.company_id, p2.name  " +
+                                "FROM works_for wf " +
+                                "INNER JOIN person p ON p.employee_id = wf.employee_id " +
+                                "INNER JOIN publisher p2 ON p2.company_id = wf.company_id;");
+                        break;
+                    case 11:
                         exitQuery = true;
                         break;
                     default:
