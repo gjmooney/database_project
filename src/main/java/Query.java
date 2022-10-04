@@ -97,17 +97,37 @@ public class Query {
 
         do {
             try {
-                System.out.println("\nEnter ID of person to see what games they've worked on ");
-                System.out.println("Enter 0 to go back");
+                System.out.println("\nEnter 1 to see what games a person has worked on");
+                System.out.println("Press 2 to see people that are looking for work");
+                System.out.println("Enter 0 to exit");
                 choice = input.nextInt();
 
-                if (choice != 0) {
-                    query = "SELECT g.title FROM game g, works_on wo WHERE wo.employee_id=${id} AND wo.game_id = g.game_id";
-                    query = query.replace("${id}", String.valueOf(choice));
+                if (choice == 1) {
+                    System.out.println("\nEnter ID of person to see what games they've worked on ");
+                    System.out.println("Enter 0 to go back");
+                    choice = input.nextInt();
+
+                    if (choice != 0) {
+                        query = "SELECT g.title FROM game g, works_on wo WHERE wo.employee_id=${id} AND wo.game_id = g.game_id";
+                        query = query.replace("${id}", String.valueOf(choice));
+                        doQuery(connection, query);
+                    } else {
+                        exit = true;
+                    }
+                } else if (choice == 2) {
+
+                    query = "SELECT DISTINCT p.employee_id, p.name " +
+                            "FROM person p " +
+                            "INNER JOIN works_for wf " +
+                            "WHERE p.employee_id " +
+                            "NOT IN (SELECT wf.employee_id from works_for wf);";
+                    // query = query.replace("${id}", String.valueOf(choice));
                     doQuery(connection, query);
+
                 } else {
                     exit = true;
                 }
+
             } catch (InputMismatchException e) {
                 System.out.println("Please enter a valid choice.");
                 input = new Scanner(System.in);

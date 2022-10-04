@@ -106,6 +106,8 @@ public class Menu {
 
     public static void displayResults(ResultSet resultSet) {
         try {
+            // Flag to check if anything was printed
+            boolean results = false;
 
             // Get number of columns
             ResultSetMetaData rsmd = resultSet.getMetaData();
@@ -142,7 +144,12 @@ public class Menu {
                         System.out.print("\t\t");
                     }
                 }
+                results = true;
                 System.out.println();
+            }
+
+            if (!results) {
+                System.out.println("No records found");
             }
 
         } catch (SQLException e) {
