@@ -98,7 +98,7 @@ public class Update {
             try {
                 // Display table
                 statement = connection.createStatement();
-                String query = "SELECT * FROM ${table}";
+                String query = "SELECT * FROM ${table};";
                 query = query.replace("${table}", tableName);
                 resultSet = statement.executeQuery(query);
                 Menu.displayResults(resultSet);
@@ -277,7 +277,7 @@ public class Update {
                     columnToUpdate = input.nextInt();
 
                     if (columnToUpdate == 1) {
-                        resultSet = statement.executeQuery("SELECT * FROM person");
+                        resultSet = statement.executeQuery("SELECT * FROM person;");
                         Menu.displayResults(resultSet);
                         System.out.println("Enter ID of new employee");
 
@@ -291,7 +291,7 @@ public class Update {
                         ps.setInt(3, empId);
 
                     } else if (columnToUpdate == 2) {
-                        resultSet = statement.executeQuery("SELECT game_id, title FROM game");
+                        resultSet = statement.executeQuery("SELECT game_id, title FROM game;");
                         Menu.displayResults(resultSet);
                         System.out.println("Enter ID of new game");
 
@@ -362,7 +362,7 @@ public class Update {
                 gameId = input.nextInt();
 
                 if (gameId != 0) {
-                    resultSet = statement.executeQuery("SELECT * FROM publisher");
+                    resultSet = statement.executeQuery("SELECT * FROM publisher;");
 
                     System.out.println("Enter the company ID of new publisher");
                     Menu.displayResults(resultSet);
@@ -482,7 +482,7 @@ public class Update {
         PreparedStatement statement = null;
 
         // Get query template set up
-        String query = "UPDATE ${table} SET ${column} = ? WHERE ${pk} = ? ";
+        String query = "UPDATE ${table} SET ${column} = ? WHERE ${pk} = ?;";
         query = query.replace("${table}", table);
         query = query.replace("${column}", column);
 

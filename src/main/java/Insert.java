@@ -286,7 +286,7 @@ public class Insert {
                 statement = connection.createStatement();
                 // display unemployed people
                 resultSet = statement.executeQuery(
-                        "SELECT employee_id, name FROM person WHERE employee_id NOT IN (SELECT employee_id  FROM works_for)");
+                        "SELECT employee_id, name FROM person WHERE employee_id NOT IN (SELECT employee_id  FROM works_for);");
                 Menu.displayResults(resultSet);
 
                 System.out.println("Enter the ID of the new employee");
@@ -294,9 +294,9 @@ public class Insert {
                 empId = input.nextInt();
 
                 if (empId != 0) {
-                    resultSet = statement.executeQuery("SELECT * FROM publisher");
+                    resultSet = statement.executeQuery("SELECT * FROM publisher;");
                     Menu.displayResults(resultSet);
-                    System.out.println("Enter the ID of the company they're going to work for");
+                    System.out.println("Enter the ID of the company they're going to work for;");
 
                     companyId = input.nextInt();
 
@@ -359,7 +359,7 @@ public class Insert {
                 empId = input.nextInt();
 
                 if (empId != 0) {
-                    resultSet = statement.executeQuery("SELECT * FROM publisher");
+                    resultSet = statement.executeQuery("SELECT * FROM publisher;");
                     Menu.displayResults(resultSet);
                     System.out.println("Enter the ID of the company they're going to work for");
 
@@ -414,7 +414,7 @@ public class Insert {
                 statement = connection.createStatement();
                 // display unemployed people
                 resultSet = statement.executeQuery(
-                        "SELECT * FROM person");
+                        "SELECT * FROM person;");
                 Menu.displayResults(resultSet);
 
                 System.out.println("Enter the ID of the employee");
@@ -422,7 +422,7 @@ public class Insert {
                 empId = input.nextInt();
 
                 if (empId != 0) {
-                    resultSet = statement.executeQuery("SELECT * FROM game");
+                    resultSet = statement.executeQuery("SELECT * FROM game;");
                     Menu.displayResults(resultSet);
                     System.out.println("Enter the ID of the game they worked on");
 
@@ -567,7 +567,7 @@ public class Insert {
 
         statement = connection.createStatement();
 
-        resultSet = statement.executeQuery("SELECT * FROM game");
+        resultSet = statement.executeQuery("SELECT * FROM game;");
         System.out.println("Enter the ID of the game being reviewed");
         System.out.println("Enter 0 to exit");
         Menu.displayResults(resultSet);
@@ -580,7 +580,7 @@ public class Insert {
     static int getId(Connection connection, String name, int type, String tableName) throws SQLException {
         PreparedStatement statement = null;
         ResultSet resultSet = null;
-        String query = "SELECT ${id} FROM ${table} WHERE ${name}=?";
+        String query = "SELECT ${id} FROM ${table} WHERE ${name}=?;";
         int id = 0;
         query = query.replace("${table}", tableName);
 
@@ -588,10 +588,8 @@ public class Insert {
             query = query.replace("${id}", "employee_id");
             query = query.replace("${name}", "name");
         } else if (type == 2) {
-            System.out.println("CHECK");
             query = query.replace("${id}", "game_id");
             query = query.replace("${name}", "title");
-            System.out.println("QUERY " + query);
         } else {
             query = query.replace("${id}", "company_id");
             query = query.replace("${name}", "name");
@@ -617,7 +615,7 @@ public class Insert {
         ResultSet resultSet = null;
         int next = -1;
         boolean exit = false;
-        String query = "SELECT ${type}_id, ${name} FROM ${table}";
+        String query = "SELECT ${type}_id, ${name} FROM ${table};";
 
         if (type == 1) {
             query = query.replace("${type}", "employee");
@@ -689,7 +687,7 @@ public class Insert {
         ResultSet resultSet = null;
         int next = -1;
         boolean exit = false;
-        String query = "SELECT ${type}_id, ${name} FROM ${table} WHERE ${type}_id NOT IN (SELECT ${type}_id FROM ${exclude})";
+        String query = "SELECT ${type}_id, ${name} FROM ${table} WHERE ${type}_id NOT IN (SELECT ${type}_id FROM ${exclude});";
 
         query = query.replace("${exclude}", exclude);
 
@@ -758,7 +756,7 @@ public class Insert {
 
             // Make query
             resultSet = statement.executeQuery("SELECT company_id, name " +
-                    "FROM publisher ");
+                    "FROM publisher; ");
 
             do {
                 // Display results
@@ -912,7 +910,7 @@ public class Insert {
 
         try {
             // Create statement
-            statement = connection.prepareStatement("INSERT INTO person (name) VALUES (?) ");
+            statement = connection.prepareStatement("INSERT INTO person (name) VALUES (?);");
             statement.setString(1, name);
 
             // Make an update
@@ -956,7 +954,7 @@ public class Insert {
             LinkedList<Integer> games) {
         Statement statement = null;
 
-        String query = "INSERT INTO ${table} (${columns}) VALUES (${values}) ";
+        String query = "INSERT INTO ${table} (${columns}) VALUES (${values});";
         query = query.replace("${table}", tableName);
         String values;
 
@@ -1021,7 +1019,7 @@ public class Insert {
             String tableName, int type) {
 
         PreparedStatement statement = null;
-        String query = "INSERT INTO ${table} (${columns}) VALUES (?, ?)";
+        String query = "INSERT INTO ${table} (${columns}) VALUES (?, ?);";
         query = query.replace("${table}", tableName);
 
         // Replace query columns based on table name

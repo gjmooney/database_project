@@ -90,7 +90,7 @@ public class Delete {
 
         // Make query
         resultSet = statement.executeQuery("SELECT employee_id, name " +
-                "FROM person ");
+                "FROM person;");
 
         // Display results
         Menu.displayResults(resultSet);
@@ -125,7 +125,7 @@ public class Delete {
 
         // Make query
         resultSet = statement.executeQuery("SELECT game_id, title " +
-                "FROM game ");
+                "FROM game; ");
 
         // Display results
         Menu.displayResults(resultSet);
@@ -161,7 +161,7 @@ public class Delete {
 
         // Make query
         resultSet = statement.executeQuery("SELECT company_id, name " +
-                "FROM publisher ");
+                "FROM publisher; ");
 
         // Display results
         Menu.displayResults(resultSet);
@@ -197,7 +197,7 @@ public class Delete {
 
             // Make query
             resultSet = statement.executeQuery("SELECT * " +
-                    "FROM rating ");
+                    "FROM rating; ");
 
             // Display results
             Menu.displayResults(resultSet);
@@ -224,7 +224,7 @@ public class Delete {
      */
     private static void checkTable(Connection connection, String tableName, String keyId, int identifier) {
 
-        String query = "SELECT ${key} FROM ${table} WHERE ${key}=${id}";
+        String query = "SELECT ${key} FROM ${table} WHERE ${key}=${id};";
         if (identifier == 1) {
             query = query.replace("${key}", "employee_id");
         } else if (identifier == 2) {
@@ -263,7 +263,7 @@ public class Delete {
      * Identifier: 1 - person, 2 - game, 3 - publisher
      */
     private static void removeFromTable(Connection connection, String tableName, String keyId, int identifier) {
-        String query = "DELETE FROM ${table} WHERE ${key}=${id}";
+        String query = "DELETE FROM ${table} WHERE ${key}=${id};";
         if (identifier == 1) {
             query = query.replace("${key}", "employee_id");
         } else if (identifier == 2) {
@@ -299,7 +299,7 @@ public class Delete {
         PreparedStatement statement = null;
 
         try {
-            statement = connection.prepareStatement("DELETE FROM rating WHERE game_id = ? AND reviewer = ?");
+            statement = connection.prepareStatement("DELETE FROM rating WHERE game_id = ? AND reviewer = ?;");
             statement.setInt(1, keyId);
             statement.setString(2, reviewer);
 
@@ -334,7 +334,7 @@ public class Delete {
 
                 // Make query
                 resultSet = statement.executeQuery("SELECT * " +
-                        "FROM works_for ");
+                        "FROM works_for; ");
 
                 // Display results
                 Menu.displayResults(resultSet);
@@ -345,7 +345,7 @@ public class Delete {
                 empId = input.nextInt();
 
                 if (empId != 0) {
-                    ps = connection.prepareStatement("DELETE FROM works_for WHERE employee_id = ?");
+                    ps = connection.prepareStatement("DELETE FROM works_for WHERE employee_id = ?;");
                     ps.setInt(1, empId);
 
                     if (ps.executeUpdate() > 0) {

@@ -83,13 +83,13 @@ public class Query {
                                 "p2.name " +
                                 "FROM game g " +
                                 "INNER JOIN publish p ON g.game_id = p.game_id " +
-                                "INNER JOIN publisher p2 ON p2.company_id = p.company_id  ");
+                                "INNER JOIN publisher p2 ON p2.company_id = p.company_id;");
                         break;
                     case 9:
                         doQuery(connection, "SELECT p.employee_id, p.name, g.game_id, g.title " +
                                 "FROM works_on wo, person p, game g " +
                                 "WHERE p.employee_id = wo.employee_id " +
-                                "AND g.game_id = wo.game_id; ");
+                                "AND g.game_id = wo.game_id;");
                         break;
                     case 10:
                         doQuery(connection, "SELECT p.employee_id, p.name, " +
@@ -116,7 +116,7 @@ public class Query {
         boolean exit = false;
         int choice = -1;
         String query = null;
-        doQuery(connection, "SELECT * FROM person");
+        doQuery(connection, "SELECT * FROM person;");
 
         do {
             try {
@@ -131,7 +131,7 @@ public class Query {
                     choice = input.nextInt();
 
                     if (choice != 0) {
-                        query = "SELECT g.title FROM game g, works_on wo WHERE wo.employee_id=${id} AND wo.game_id = g.game_id";
+                        query = "SELECT g.title FROM game g, works_on wo WHERE wo.employee_id=${id} AND wo.game_id = g.game_id;";
                         query = query.replace("${id}", String.valueOf(choice));
                         doQuery(connection, query);
                     } else {
@@ -144,7 +144,7 @@ public class Query {
                             "INNER JOIN works_for wf " +
                             "WHERE p.employee_id " +
                             "NOT IN (SELECT wf.employee_id from works_for wf);";
-                    // query = query.replace("${id}", String.valueOf(choice));
+
                     doQuery(connection, query);
 
                 } else {
@@ -163,7 +163,7 @@ public class Query {
         boolean exit = false;
         int choice = -1;
         String query = null;
-        doQuery(connection, "SELECT * FROM game");
+        doQuery(connection, "SELECT * FROM game;");
 
         do {
             System.out.println("\nEnter 1 to see the games publisher");
@@ -178,7 +178,7 @@ public class Query {
                     choice = input.nextInt();
 
                     if (choice != 0) {
-                        query = "SELECT p.name  FROM publisher p, publish p2 WHERE p2.game_id=${id} AND p.company_id  = p2.company_id";
+                        query = "SELECT p.name  FROM publisher p, publish p2 WHERE p2.game_id=${id} AND p.company_id  = p2.company_id;";
                         query = query.replace("${id}", String.valueOf(choice));
                         doQuery(connection, query);
                     } else {
@@ -195,7 +195,7 @@ public class Query {
                         query = "SELECT g.title, r.reviewer, r.score " +
                                 "FROM  game g " +
                                 "INNER JOIN rating r ON g.game_id = r.game_id " +
-                                "WHERE g.game_id = ${id}";
+                                "WHERE g.game_id = ${id};";
                         query = query.replace("${id}", String.valueOf(choice));
                         doQuery(connection, query);
                     } else {
@@ -216,7 +216,7 @@ public class Query {
         boolean exit = false;
         int choice = -1;
         String query = null;
-        doQuery(connection, "SELECT * FROM publisher");
+        doQuery(connection, "SELECT * FROM publisher;");
 
         do {
             try {
