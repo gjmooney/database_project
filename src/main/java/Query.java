@@ -123,15 +123,41 @@ public class Query {
         doQuery(connection, "SELECT * FROM game");
 
         do {
+            System.out.println("\nEnter 1 to see the games publisher");
+            System.out.println("Enter 2 to see the games reviews");
+            System.out.println("Enter 0 to go back");
+            choice = input.nextInt();
             try {
-                System.out.println("\nEnter ID of a game to see which company published the game");
-                System.out.println("Enter 0 to go back");
-                choice = input.nextInt();
+                if (choice == 1) {
+                    choice = -1;
+                    System.out.println("\nEnter ID of a game to see which company published the game");
+                    System.out.println("Enter 0 to go back");
+                    choice = input.nextInt();
 
-                if (choice != 0) {
-                    query = "SELECT p.name  FROM publisher p, publish p2 WHERE p2.game_id=${id} AND p.company_id  = p2.company_id";
-                    query = query.replace("${id}", String.valueOf(choice));
-                    doQuery(connection, query);
+                    if (choice != 0) {
+                        query = "SELECT p.name  FROM publisher p, publish p2 WHERE p2.game_id=${id} AND p.company_id  = p2.company_id";
+                        query = query.replace("${id}", String.valueOf(choice));
+                        doQuery(connection, query);
+                    } else {
+                        exit = true;
+                    }
+
+                } else if (choice == 2) {
+                    choice = -1;
+                    System.out.println("\nEnter ID of a game to see the games reviews");
+                    System.out.println("Enter 0 to go back");
+                    choice = input.nextInt();
+
+                    if (choice != 0) {
+                        query = "SELECT g.title, r.reviewer, r.score " +
+                                "FROM  game g " +
+                                "INNER JOIN rating r ON g.game_id = r.game_id " +
+                                "WHERE g.game_id = ${id}";
+                        query = query.replace("${id}", String.valueOf(choice));
+                        doQuery(connection, query);
+                    } else {
+                        exit = true;
+                    }
                 } else {
                     exit = true;
                 }

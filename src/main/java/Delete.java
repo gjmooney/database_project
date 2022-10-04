@@ -1,6 +1,7 @@
 package main.java;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -19,7 +20,8 @@ public class Delete {
             System.out.println("1. Person");
             System.out.println("2. Game");
             System.out.println("3. Publisher");
-            System.out.println("4. Return to main menu");
+            System.out.println("4. Rating");
+            System.out.println("5. Return to main menu");
 
             try {
                 choice = input.nextInt();
@@ -35,6 +37,9 @@ public class Delete {
                         deletePublisher(connection, input);
                         break;
                     case 4:
+                        deleteRating(connection, input);
+                        break;
+                    case 5:
                         exit = true;
                         break;
                     default:
@@ -165,6 +170,47 @@ public class Delete {
         }
     }
 
+    private static void deleteRating(Connection connection, Scanner input) throws SQLException {
+        // display all ratings
+        // ask rating to delete
+        // remove them from rating
+        int gameId = 0;
+        String reviewer = null;
+        Statement statement = null;
+        ResultSet resultSet = null;
+
+        // Get employee_id to delete
+        System.out.println("Which rating would you like to delete?");
+        System.out.println("Enter 0 if you don't want to remove one");
+
+        if (gameId != 0) {
+            // Create statement
+            statement = connection.createStatement();
+
+            // Make query
+            resultSet = statement.executeQuery("SELECT * " +
+                    "FROM rating ");
+
+            // Display results
+            Menu.displayResults(resultSet);
+            try {
+                // get game_id
+                gameId = input.nextInt();
+
+                // get second PK
+                reviewer = Update.getReviewer(connection, input);
+
+                if (gameId != 0) {
+                    removeFromRatingTable(connection, reviewer, gameId);
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid choice.");
+                input = new Scanner(System.in);
+            }
+        }
+
+    }
+
     /*
      * Identifier - 1 = person, 2 = game, 3 = publisher
      */
@@ -205,6 +251,9 @@ public class Delete {
 
     }
 
+    /*
+     * Identifier: 1 - person, 2 - game, 3 - publisher
+     */
     private static void removeFromTable(Connection connection, String tableName, String keyId, int identifier) {
         String query = "DELETE FROM ${table} WHERE ${key}=${id}";
         if (identifier == 1) {
@@ -225,6 +274,31 @@ public class Delete {
                 System.out.println("ID " + keyId + " was removed from " + tableName);
             } else {
                 System.out.println(keyId + " was not removed from " + tableName);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                statement.close();
+            } catch (SQLException e) {
+                System.out.println("Issue closing resources");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void removeFromRatingTable(Connection connection, String reviewer, int keyId) {
+        PreparedStatement statement = null;
+
+        try {
+            statement = connection.prepareStatement("DELETE FROM rating WHERE game_id = ? AND reviewer = ?");
+            statement.setInt(1, keyId);
+            statement.setString(2, reviewer);
+
+            if (statement.executeUpdate() > 0) {
+                System.out.println("Rating was removed from rating table");
+            } else {
+                System.out.println("Rating was not removed from table");
             }
         } catch (Exception e) {
             e.printStackTrace();

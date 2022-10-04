@@ -162,7 +162,7 @@ public class Update {
         } while (!exit);
     }
 
-    private static String getReviewer(Connection connection, Scanner input) {
+    static String getReviewer(Connection connection, Scanner input) {
         String reviewer = null;
         boolean exit = false;
         PreparedStatement statement = null;
@@ -242,9 +242,6 @@ public class Update {
         query = query.replace("${table}", table);
         query = query.replace("${column}", column);
 
-        // SEcond PK for rating table
-        query = query.replace("${pk} = ?", "${pk} = ? AND reviewer = ?");
-
         // Change PK field based on table
         if (table.equals("person") | table.equals("designer")) {
             query = query.replace("${pk}", EMP_ID);
@@ -254,6 +251,8 @@ public class Update {
             query = query.replace("${pk}", COM_ID);
         } else if (table.equals("rating")) {
             query = query.replace("${pk}", GAME_ID);
+            // Second PK for rating table
+            query = query.replace("${pk} = ?", "${pk} = ? AND reviewer = ?");
         }
 
         // Create statement
@@ -293,7 +292,6 @@ public class Update {
 
             // set the PK
             statement.setInt(2, key);
-            System.out.println("QUERY: " + statement);
 
             // Execute the update
             if (statement.executeUpdate() > 0) {
