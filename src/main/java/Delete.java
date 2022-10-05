@@ -191,20 +191,20 @@ public class Delete {
         System.out.println("Which rating would you like to delete?");
         System.out.println("Enter 0 if you don't want to remove one");
 
+        // Create statement
+        statement = connection.createStatement();
+
+        // Make query
+        resultSet = statement.executeQuery("SELECT * " +
+                "FROM rating; ");
+
+        // Display results
+        Menu.displayResults(resultSet);
+        gameId = input.nextInt();
+
         if (gameId != 0) {
-            // Create statement
-            statement = connection.createStatement();
 
-            // Make query
-            resultSet = statement.executeQuery("SELECT * " +
-                    "FROM rating; ");
-
-            // Display results
-            Menu.displayResults(resultSet);
             try {
-                // get game_id
-                gameId = input.nextInt();
-
                 // get second PK
                 reviewer = Update.getReviewer(connection, input);
 
