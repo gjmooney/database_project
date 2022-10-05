@@ -26,8 +26,7 @@ public class Insert {
             System.out.println("4. Rating");
             System.out.println("5. Works For");
             System.out.println("6. Works On");
-            System.out.println("7. Publish");
-            System.out.println("8. Return to main menu");
+            System.out.println("7. Return to main menu");
 
             try {
                 choice = input.nextInt();
@@ -52,9 +51,6 @@ public class Insert {
                         worksOnInsertMenu(connection, input);
                         break;
                     case 7:
-                        publishInsertMenu(connection, input);
-                        break;
-                    case 8:
                         exit = true;
                         break;
                     default:
@@ -305,69 +301,6 @@ public class Insert {
                     ps.setInt(2, companyId);
 
                     System.out.println("QUERY: " + ps);
-
-                    if (ps.executeUpdate() > 0) {
-                        System.out.println("Insert successful");
-                        connection.commit();
-                    } else {
-                        System.out.println("Insert unsuccessful");
-                        connection.rollback();
-                    }
-                }
-
-                exit = true;
-
-            } catch (SQLException e) {
-                System.out.println("Issue inserting into works_for table");
-                e.printStackTrace();
-            } catch (InputMismatchException e) {
-                System.out.println("Please enter a valid value");
-                input = new Scanner(System.in);
-            } finally {
-                try {
-                    resultSet.close();
-                    if (ps != null) {
-                        ps.close();
-                    }
-                    statement.close();
-                } catch (SQLException e) {
-                    System.out.println("Error closing resources");
-                    e.printStackTrace();
-                }
-            }
-        } while (!exit);
-    }
-
-    private static void publishInsertMenu(Connection connection, Scanner input) {
-        boolean exit = false;
-        int empId = -1;
-        int companyId = -1;
-        Statement statement = null;
-        PreparedStatement ps = null;
-        ResultSet resultSet = null;
-
-        do {
-            try {
-                statement = connection.createStatement();
-
-                resultSet = statement.executeQuery(
-                        "SELECT * FROM publish;");
-                Menu.displayResults(resultSet);
-
-                System.out.println("Enter the ID of the new employee");
-                System.out.println("Enter 0 to go back");
-                empId = input.nextInt();
-
-                if (empId != 0) {
-                    resultSet = statement.executeQuery("SELECT * FROM publisher;");
-                    Menu.displayResults(resultSet);
-                    System.out.println("Enter the ID of the company they're going to work for");
-
-                    companyId = input.nextInt();
-
-                    ps = connection.prepareStatement("INSERT INTO works_for (employee_id, company_id) VALUES (?, ?);");
-                    ps.setInt(1, empId);
-                    ps.setInt(2, companyId);
 
                     if (ps.executeUpdate() > 0) {
                         System.out.println("Insert successful");
